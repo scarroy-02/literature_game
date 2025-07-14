@@ -1,1 +1,1 @@
-# literature_game
+# The Literature Game
