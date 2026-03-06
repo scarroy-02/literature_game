@@ -80,7 +80,6 @@ h1 span {
   text-shadow: none;
 }
 
-/* ── Buttons ────────────────────────────────────── */
 .btn {
   font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 500;
@@ -108,7 +107,6 @@ h1 span {
 .btn-outline:hover { background: rgba(200,168,78,0.1); }
 .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
 
-/* ── Input ──────────────────────────────────────── */
 input[type="text"] {
   font-family: 'JetBrains Mono', monospace;
   font-size: 1.1rem;
@@ -137,56 +135,37 @@ input.name-input {
   box-shadow: var(--shadow);
 }
 
-/* ═══════ HOME SCREEN ═══════ */
+/* ═══════ HOME ═══════ */
 #screen-home {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 90vh;
-  gap: 32px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 90vh; gap: 32px;
 }
 .home-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  max-width: 380px;
+  display: flex; flex-direction: column; gap: 16px;
+  width: 100%; max-width: 380px;
 }
 .home-actions .panel { display: flex; flex-direction: column; gap: 12px; }
 .divider {
-  text-align: center;
-  color: var(--cream-dim);
-  font-size: 0.8rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  text-align: center; color: var(--cream-dim);
+  font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase;
 }
 
-/* ═══════ LOBBY SCREEN ═══════ */
+/* ═══════ LOBBY ═══════ */
 #screen-lobby {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  padding-top: 40px;
+  display: none; flex-direction: column; align-items: center;
+  gap: 24px; padding-top: 40px;
 }
 .room-code-display {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 2.4rem;
-  color: var(--gold-bright);
-  letter-spacing: 0.3em;
-  cursor: pointer;
-  transition: color 0.2s;
+  font-size: 2.4rem; color: var(--gold-bright);
+  letter-spacing: 0.3em; cursor: pointer; transition: color 0.2s;
 }
 .room-code-display:hover { color: var(--gold); }
 .copy-hint { font-size: 0.75rem; color: var(--cream-dim); margin-top: -16px; }
+
 .teams-container {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 24px;
-  width: 100%;
-  max-width: 700px;
-  align-items: start;
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: 24px; width: 100%; max-width: 700px; align-items: start;
 }
 .team-panel { padding: 20px; border-radius: 12px; min-height: 180px; }
 .team-panel.t0 { background: var(--team-blue-bg); border: 1px solid rgba(91,159,212,0.2); }
@@ -215,13 +194,14 @@ input.name-input {
   font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--gold-dim); padding-top: 60px;
 }
 .waiting-msg { color: var(--cream-dim); font-size: 0.85rem; text-align: center; }
+.lobby-error { color: var(--red-soft); font-size: 0.8rem; text-align: center; min-height: 20px; }
 
-/* ═══════ GAME SCREEN ═══════ */
+/* ═══════ GAME ═══════ */
 #screen-game { display: none; }
 
 .game-top-bar {
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 10px; padding: 0 8px;
+  margin-bottom: 4px; padding: 0 8px;
 }
 .game-title-sm { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--gold); }
 .game-code-sm { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--cream-dim); margin-left: 8px; }
@@ -233,19 +213,38 @@ input.name-input {
 .score-t0 { background: var(--team-blue-bg); color: var(--team-blue); border: 1px solid rgba(91,159,212,0.3); }
 .score-t1 { background: var(--team-red-bg); color: var(--team-red); border: 1px solid rgba(224,112,80,0.3); }
 
+/* ── Turn bar ────────────────────────────────────── */
+.turn-bar {
+  text-align: center;
+  padding: 8px 16px;
+  margin: 4px auto 8px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  max-width: 400px;
+}
+.turn-bar.your-turn {
+  background: rgba(200,168,78,0.12);
+  color: var(--gold-bright);
+  border: 1px solid rgba(200,168,78,0.2);
+}
+.turn-bar.waiting {
+  background: rgba(255,255,255,0.04);
+  color: var(--cream-dim);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
 /* ── The Table ──────────────────────────────────── */
 .table-wrapper {
   position: relative;
-  width: 100%;
-  max-width: 900px;
+  width: 100%; max-width: 900px;
   margin: 0 auto;
   aspect-ratio: 16 / 10;
-  min-height: 460px;
+  min-height: 420px;
 }
 
 .table-felt {
   position: absolute;
-  top: 50px; left: 50px; right: 50px; bottom: 80px;
+  top: 55px; left: 55px; right: 55px; bottom: 55px;
   border-radius: 50%;
   background: radial-gradient(ellipse at 50% 45%, #1a7a45 0%, #145a32 40%, #0f4528 70%, #0b3420 100%);
   border: 8px solid var(--felt-rim);
@@ -261,7 +260,7 @@ input.name-input {
   pointer-events: none;
 }
 
-/* ── Claimed pits on the table ──────────────────── */
+/* ── Pits on table ──────────────────────────────── */
 .table-pits {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -287,25 +286,23 @@ input.name-input {
   border: 1px solid rgba(224,112,80,0.35); box-shadow: 0 0 8px rgba(224,112,80,0.15);
 }
 
-/* ── Player seats around the table ──────────────── */
+/* ── Player seats ───────────────────────────────── */
 .player-seat {
   position: absolute;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   z-index: 5; transition: all 0.3s;
 }
-
-/* 6 seats: 0=bottom-center(you), going clockwise */
-.seat-pos-0 { bottom: -12px; left: 50%; transform: translateX(-50%); }
-.seat-pos-1 { bottom: 20%; left: 1%; }
-.seat-pos-2 { top: 6%; left: 6%; }
-.seat-pos-3 { top: -18px; left: 50%; transform: translateX(-50%); }
-.seat-pos-4 { top: 6%; right: 6%; }
-.seat-pos-5 { bottom: 20%; right: 1%; }
+.seat-pos-0 { bottom: -20px; left: 50%; transform: translateX(-50%); }
+.seat-pos-1 { bottom: 22%; left: 0%; }
+.seat-pos-2 { top: 4%; left: 6%; }
+.seat-pos-3 { top: -24px; left: 50%; transform: translateX(-50%); }
+.seat-pos-4 { top: 4%; right: 6%; }
+.seat-pos-5 { bottom: 22%; right: 0%; }
 
 .avatar {
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 50px; height: 50px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem; font-weight: 600;
+  font-size: 1.2rem; font-weight: 600;
   transition: all 0.2s; position: relative; border: 3px solid transparent;
 }
 .avatar.team-0 {
@@ -349,7 +346,7 @@ input.name-input {
   background: rgba(10,15,13,0.96);
   border: 1px solid rgba(200,168,78,0.25);
   border-radius: 10px; padding: 8px;
-  min-width: 210px; max-height: 340px;
+  min-width: 240px; max-height: 380px;
   overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   backdrop-filter: blur(8px);
@@ -358,7 +355,6 @@ input.name-input {
 .call-dropdown.active { display: block; }
 .call-dropdown::-webkit-scrollbar { width: 4px; }
 .call-dropdown::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
-
 .call-dropdown-header {
   font-size: 0.72rem; color: var(--cream-dim);
   padding: 4px 8px 8px;
@@ -367,81 +363,192 @@ input.name-input {
 }
 .call-card-option {
   display: flex; align-items: center; gap: 10px;
-  padding: 6px 8px; border-radius: 6px; cursor: pointer;
+  padding: 5px 6px; border-radius: 6px; cursor: pointer;
   transition: background 0.15s;
 }
 .call-card-option:hover { background: rgba(200,168,78,0.12); }
-.call-card-mini {
-  width: 34px; height: 46px; background: var(--card-bg);
-  border-radius: 4px; display: flex; align-items: center; justify-content: center;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3); flex-shrink: 0;
-  line-height: 1.1; text-align: center;
+
+/* ── Realistic Playing Card (CSS) ───────────────── */
+.playing-card {
+  position: relative;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
 }
-.call-card-mini.red { color: #c0392b; }
-.call-card-mini.black { color: #1a1a2e; }
-.call-card-label { font-size: 0.82rem; color: var(--cream); }
+.playing-card::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Corner labels */
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+.card-corner.tl { top: 3px; left: 4px; }
+.card-corner.br { bottom: 3px; right: 4px; transform: rotate(180deg); }
+
+.card-corner-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+.card-corner-suit {
+  line-height: 1;
+}
+
+/* Center pip */
+.card-center {
+  font-size: inherit;
+  line-height: 1;
+}
+
+.playing-card.suit-red { color: #c0392b; }
+.playing-card.suit-black { color: #1a1a2e; }
+.playing-card.suit-joker-red { color: #c0392b; }
+.playing-card.suit-joker-black { color: #2c3e50; }
+
+/* Card sizes */
+.card-sm {
+  width: 38px; height: 52px; font-size: 1rem;
+}
+.card-sm .card-corner { font-size: 0.5rem; }
+.card-sm .card-corner-val { font-size: 0.55rem; }
+.card-sm .card-corner-suit { font-size: 0.45rem; }
+.card-sm .card-center { font-size: 1rem; }
+
+.card-md {
+  width: 58px; height: 82px; font-size: 1.5rem;
+}
+.card-md .card-corner-val { font-size: 0.7rem; }
+.card-md .card-corner-suit { font-size: 0.6rem; }
+.card-md .card-center { font-size: 1.5rem; }
+
+.card-md.joker-card .card-center {
+  font-size: 0.6rem;
+  font-family: 'DM Serif Display', serif;
+  font-weight: 700;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.05em;
+}
+
+.card-sm.joker-card .card-center {
+  font-size: 0.45rem;
+  font-family: 'DM Serif Display', serif;
+  font-weight: 700;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
 
 /* ── Card Fan ───────────────────────────────────── */
 .card-fan-area {
   position: relative; width: 100%; max-width: 900px;
-  margin: -28px auto 0; height: 110px;
-  display: flex; justify-content: center; align-items: flex-end;
+  margin: 12px auto 0; /* pushed down from table */
+  min-height: 100px;
+  display: flex; justify-content: center; align-items: flex-start;
   z-index: 10;
 }
 .card-fan {
-  display: flex; justify-content: center; position: relative; height: 100px;
+  display: flex; justify-content: center; position: relative;
+  flex-wrap: wrap; gap: 4px;
+  padding: 6px 0;
 }
-.fan-card {
-  width: 54px; height: 78px; background: var(--card-bg);
-  border-radius: 6px; display: flex; align-items: center; justify-content: center;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700;
-  border: 2px solid rgba(0,0,0,0.08);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  cursor: default; transition: all 0.2s; position: relative;
-  flex-shrink: 0; margin: 0 -3px;
-  line-height: 1.1; text-align: center;
+.card-fan .playing-card {
+  transition: all 0.2s;
+  cursor: default;
 }
-.fan-card.red { color: #c0392b; }
-.fan-card.black { color: #1a1a2e; }
-.fan-card:hover {
+.card-fan .playing-card:hover {
   transform: translateY(-10px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
   z-index: 2;
 }
-.pit-spacer { width: 14px; flex-shrink: 0; }
+.pit-spacer { width: 12px; flex-shrink: 0; height: 1px; }
 
-/* ── Last call toast ────────────────────────────── */
-.last-call-toast {
+/* ── Last call floating button ──────────────────── */
+.last-call-btn {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  z-index: 60;
+  display: none;
+}
+.last-call-btn.visible { display: block; }
+
+.last-call-trigger {
+  background: rgba(13,31,23,0.92);
+  border: 1px solid rgba(200,168,78,0.25);
+  color: var(--cream);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.82rem;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.last-call-trigger:hover {
+  background: rgba(13,31,23,1);
+  border-color: var(--gold-dim);
+}
+.last-call-trigger .lc-icon {
+  font-size: 1rem;
+}
+.last-call-popup {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: rgba(10,15,13,0.96);
+  border: 1px solid rgba(200,168,78,0.2);
+  border-radius: 10px;
+  padding: 14px 18px;
+  min-width: 280px;
+  max-width: 360px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  font-size: 0.85rem;
+  color: var(--cream);
+  line-height: 1.5;
+}
+.last-call-popup.show { display: block; }
+.last-call-popup .lc-label {
+  font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--cream-dim); margin-bottom: 4px;
+}
+.lc-success { color: #7dda9a; }
+.lc-fail { color: #f0a0a0; }
+
+/* ── Toast ──────────────────────────────────────── */
+.toast {
   position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
   padding: 10px 24px; border-radius: 10px; font-size: 0.85rem;
   z-index: 100; animation: toastIn 0.3s ease;
   pointer-events: none; text-align: center; max-width: 90%;
 }
-.last-call-toast.success {
-  background: rgba(30,100,60,0.92); color: #7dda9a; border: 1px solid rgba(39,174,96,0.3);
-}
-.last-call-toast.fail {
-  background: rgba(100,30,30,0.92); color: #f0a0a0; border: 1px solid rgba(192,57,43,0.3);
-}
+.toast.success { background: rgba(30,100,60,0.92); color: #7dda9a; border: 1px solid rgba(39,174,96,0.3); }
+.toast.fail { background: rgba(100,30,30,0.92); color: #f0a0a0; border: 1px solid rgba(192,57,43,0.3); }
 @keyframes toastIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from { opacity:0; transform: translateX(-50%) translateY(-12px); }
+  to { opacity:1; transform: translateX(-50%) translateY(0); }
 }
 
-/* ── Turn banner ────────────────────────────────── */
-.turn-banner {
-  text-align: center; font-size: 0.82rem; color: var(--gold);
-  padding: 6px; margin-bottom: 6px;
-}
-
-/* ── Bottom bar ─────────────────────────────────── */
-.bottom-bar {
+/* ── Actions panel ──────────────────────────────── */
+.actions-bar {
   max-width: 900px; margin: 16px auto 0;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
 }
-@media (max-width: 700px) { .bottom-bar { grid-template-columns: 1fr; } }
-
 .bottom-panel {
   background: rgba(13,31,23,0.7); border: 1px solid rgba(200,168,78,0.1);
   border-radius: 10px; padding: 14px;
@@ -459,16 +566,6 @@ input.name-input {
   font-size: 0.8rem; outline: none; cursor: pointer; flex: 1; min-width: 120px;
 }
 
-.log-entries {
-  max-height: 140px; overflow-y: auto;
-  font-size: 0.72rem; color: var(--cream-dim);
-}
-.log-entries::-webkit-scrollbar { width: 3px; }
-.log-entries::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
-.log-entry {
-  padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); line-height: 1.4;
-}
-
 /* ── Claim Modal ────────────────────────────────── */
 .modal-overlay {
   display: none; position: fixed; inset: 0;
@@ -479,22 +576,32 @@ input.name-input {
 .modal-overlay.active { display: flex; }
 .modal {
   background: rgba(13,40,25,0.97); border: 1px solid rgba(200,168,78,0.2);
-  border-radius: 16px; padding: 28px; max-width: 460px; width: 90%;
+  border-radius: 16px; padding: 28px; max-width: 480px; width: 90%;
   max-height: 80vh; overflow-y: auto;
   box-shadow: 0 8px 40px rgba(0,0,0,0.5);
 }
-.modal h3 { color: var(--gold); margin-bottom: 16px; }
+.modal h3 { color: var(--gold); margin-bottom: 6px; }
+.modal .modal-subtitle {
+  font-size: 0.78rem; color: var(--cream-dim); margin-bottom: 16px;
+}
+
 .claim-card-row {
   display: flex; align-items: center; gap: 12px;
-  margin-bottom: 8px; padding: 8px;
+  margin-bottom: 8px; padding: 8px 10px;
   background: rgba(0,0,0,0.2); border-radius: 8px;
 }
-.claim-card-name {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
-  width: 70px; flex-shrink: 0;
+.claim-card-row.auto-assigned {
+  opacity: 0.5;
 }
-.claim-card-name.red { color: #e74c3c; }
-.claim-card-name.black { color: var(--cream); }
+.claim-card-row .ccr-label {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.82rem; color: var(--cream);
+  flex: 1;
+}
+.claim-card-row .ccr-auto {
+  font-size: 0.72rem; color: var(--gold-dim);
+  font-style: italic;
+}
 .claim-card-row select {
   flex: 1; font-family: 'IBM Plex Sans', sans-serif; padding: 6px 10px;
   background: var(--bg); color: var(--cream);
@@ -517,13 +624,18 @@ input.name-input {
 /* ── Responsive ─────────────────────────────────── */
 @media (max-width: 600px) {
   h1 { font-size: 2rem; }
-  .table-wrapper { min-height: 360px; }
-  .table-felt { top: 35px; left: 25px; right: 25px; bottom: 55px; }
+  .table-wrapper { min-height: 340px; }
+  .table-felt { top: 40px; left: 25px; right: 25px; bottom: 40px; }
   .avatar { width: 40px; height: 40px; font-size: 1rem; }
-  .seat-name { font-size: 0.6rem; max-width: 60px; }
-  .fan-card { width: 42px; height: 60px; font-size: 0.7rem; }
+  .seat-name { font-size: 0.6rem; max-width: 56px; }
+  .card-md { width: 46px; height: 66px; }
+  .card-md .card-corner-val { font-size: 0.55rem; }
+  .card-md .card-corner-suit { font-size: 0.45rem; }
+  .card-md .card-center { font-size: 1.1rem; }
+  .seat-pos-0 { bottom: -16px; }
   .seat-pos-1 { left: -2%; }
   .seat-pos-2 { left: 0%; }
+  .seat-pos-3 { top: -20px; }
   .seat-pos-4 { right: 0%; }
   .seat-pos-5 { right: -2%; }
 }
@@ -533,7 +645,7 @@ input.name-input {
 </head>
 <body>
 
-<!-- ═══════════════ HOME SCREEN ═══════════════ -->
+<!-- HOME -->
 <div id="screen-home" class="container">
   <div><h1>Literature<span>The Card Game</span></h1></div>
   <div class="home-actions">
@@ -552,7 +664,7 @@ input.name-input {
   <div id="home-error" style="color:var(--red-soft);font-size:0.85rem;text-align:center;min-height:20px;"></div>
 </div>
 
-<!-- ═══════════════ LOBBY SCREEN ═══════════════ -->
+<!-- LOBBY -->
 <div id="screen-lobby" class="container">
   <h1>Lobby<span>Waiting for players</span></h1>
   <div class="room-code-display" id="lobby-code" title="Click to copy"></div>
@@ -568,11 +680,12 @@ input.name-input {
       <div id="team1-players"></div>
     </div>
   </div>
+  <div class="lobby-error" id="lobby-error"></div>
   <div class="waiting-msg" id="lobby-status"></div>
   <button class="btn btn-gold hidden" id="btn-start" style="margin-top:16px">Start Game</button>
 </div>
 
-<!-- ═══════════════ GAME SCREEN ═══════════════ -->
+<!-- GAME -->
 <div id="screen-game" class="container">
   <div id="game-over-area"></div>
   <div class="game-top-bar">
@@ -585,7 +698,7 @@ input.name-input {
       <div class="score-item score-t1">T2: <span id="score-1">0</span></div>
     </div>
   </div>
-  <div id="turn-banner" class="turn-banner"></div>
+  <div id="turn-bar" class="turn-bar waiting"></div>
 
   <div class="table-wrapper" id="table-wrapper">
     <div class="table-felt">
@@ -597,25 +710,30 @@ input.name-input {
     <div class="card-fan" id="card-fan"></div>
   </div>
 
-  <div class="bottom-bar">
+  <div class="actions-bar">
     <div class="bottom-panel" id="actions-panel">
       <h3>Actions</h3>
       <div id="actions-content"></div>
     </div>
-    <div class="bottom-panel">
-      <h3>Game Log</h3>
-      <div class="log-entries" id="game-log"></div>
-    </div>
   </div>
 </div>
 
-<!-- ═══════════════ CLAIM MODAL ═══════════════ -->
+<!-- LAST CALL BUTTON -->
+<div class="last-call-btn" id="last-call-btn">
+  <div class="last-call-trigger" id="last-call-trigger">
+    <span class="lc-icon">📋</span> Last Call
+  </div>
+  <div class="last-call-popup" id="last-call-popup">
+    <div class="lc-label">Last Call</div>
+    <div id="last-call-text"></div>
+  </div>
+</div>
+
+<!-- CLAIM MODAL -->
 <div class="modal-overlay" id="claim-modal">
   <div class="modal">
     <h3>Claim Pit: <span id="claim-pit-name"></span></h3>
-    <p style="font-size:0.8rem;color:var(--cream-dim);margin-bottom:14px;">
-      Assign each card to a teammate (including yourself).
-    </p>
+    <div class="modal-subtitle">Cards you own are auto-assigned. Guess who has the rest.</div>
     <div id="claim-assignments"></div>
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" id="claim-cancel">Cancel</button>
@@ -624,24 +742,61 @@ input.name-input {
   </div>
 </div>
 
-<!-- Call dropdown (positioned dynamically) -->
+<!-- CALL DROPDOWN -->
 <div class="call-dropdown" id="call-dropdown"></div>
 
 <script>
-// ── State ───────────────────────────────────────
 const socket = io();
 let myPlayerId = null;
 let gameState = null;
 let roomCode = null;
 let callDropdownTarget = null;
 
-const SUIT_COLORS = { Hearts:'red', Diamonds:'red', Clubs:'black', Spades:'black', Joker:'red' };
+const SUIT_COLORS = { Hearts:'red', Diamonds:'red', Clubs:'black', Spades:'black' };
 const SUIT_SYM = { Hearts:'♥', Diamonds:'♦', Clubs:'♣', Spades:'♠' };
+const VALUE_NAMES = {2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'10',11:'Jack',12:'Queen',13:'King',14:'Ace'};
+const VALUE_SHORT = {11:'J',12:'Q',13:'K',14:'A'};
 
+// ── Card HTML builder ──────────────────────────
+function cardHTML(card, sizeClass) {
+  if (card.suit === 'Joker') {
+    const isRed = card.id === 'Joker-Red';
+    const colorClass = isRed ? 'suit-joker-red' : 'suit-joker-black';
+    const label = isRed ? 'JOKER' : 'JOKER';
+    const star = '★';
+    return `<div class="playing-card ${sizeClass} ${colorClass} joker-card">
+      <div class="card-corner tl"><span class="card-corner-val">${star}</span></div>
+      <div class="card-center">${label}</div>
+      <div class="card-corner br"><span class="card-corner-val">${star}</span></div>
+    </div>`;
+  }
+  const v = VALUE_SHORT[card.value] || card.value.toString();
+  const s = SUIT_SYM[card.suit];
+  const colorClass = SUIT_COLORS[card.suit] === 'red' ? 'suit-red' : 'suit-black';
+  return `<div class="playing-card ${sizeClass} ${colorClass}">
+    <div class="card-corner tl"><span class="card-corner-val">${v}</span><span class="card-corner-suit">${s}</span></div>
+    <div class="card-center">${s}</div>
+    <div class="card-corner br"><span class="card-corner-val">${v}</span><span class="card-corner-suit">${s}</span></div>
+  </div>`;
+}
+
+function cardFullName(card) {
+  if (card.suit === 'Joker') return card.id === 'Joker-Red' ? 'Red Joker' : 'Black Joker';
+  return `${VALUE_NAMES[card.value]} of ${card.suit}`;
+}
+
+function cardShortDisplay(card) {
+  if (card.suit === 'Joker') return card.id === 'Joker-Red' ? 'Red Jkr' : 'Blk Jkr';
+  const v = VALUE_SHORT[card.value] || card.value.toString();
+  return `${v}${SUIT_SYM[card.suit]}`;
+}
+
+// ── Screens ─────────────────────────────────────
 function showScreen(id) {
   document.getElementById('screen-home').style.display = id === 'home' ? 'flex' : 'none';
   document.getElementById('screen-lobby').style.display = id === 'lobby' ? 'flex' : 'none';
   document.getElementById('screen-game').style.display = id === 'game' ? 'block' : 'none';
+  document.getElementById('last-call-btn').classList.toggle('visible', id === 'game');
 }
 
 // ── Home ────────────────────────────────────────
@@ -670,9 +825,7 @@ document.getElementById('btn-join').onclick = () => {
       localStorage.setItem('lit_room', roomCode);
       if (res.room.state === 'playing' || res.room.state === 'finished') {
         gameState = res.room; showScreen('game'); renderGame();
-      } else {
-        showScreen('lobby'); updateLobby(res.room);
-      }
+      } else { showScreen('lobby'); updateLobby(res.room); }
     } else showError(res.error);
   });
 };
@@ -690,31 +843,46 @@ document.getElementById('btn-start').onclick = () => {
 function updateLobby(data) {
   document.getElementById('lobby-code').textContent = data.code || roomCode;
   const isHost = data.players[0]?.id === myPlayerId;
+  const t0Count = data.players.filter(p => p.team === 0).length;
+  const t1Count = data.players.filter(p => p.team === 1).length;
+  const balanced = t0Count === 3 && t1Count === 3;
+
   for (let t = 0; t < 2; t++) {
     const el = document.getElementById(`team${t}-players`);
     const tPlayers = data.players.filter(p => p.team === t);
     el.innerHTML = tPlayers.map(p => {
       const isMe = p.id === myPlayerId;
       const hostBadge = data.players[0]?.id === p.id ? '<span class="host-badge">Host</span>' : '';
-      const swapBtn = (isHost && p.id !== myPlayerId) ? `<button class="swap-btn" data-pid="${p.id}">Swap</button>` : '';
+      // ALL players can swap themselves; host can swap anyone
+      const canSwap = isHost || p.id === myPlayerId;
+      const swapBtn = canSwap ? `<button class="swap-btn" data-pid="${p.id}">↔ Swap</button>` : '';
       return `<div class="team-player">${isMe ? '→ ' : ''}${p.name} ${hostBadge}${swapBtn}</div>`;
     }).join('') || '<div style="color:var(--cream-dim);font-size:0.8rem;padding:8px;">waiting...</div>';
   }
+
   document.querySelectorAll('.swap-btn').forEach(btn => {
     btn.onclick = () => socket.emit('swap-team', { targetPlayerId: btn.dataset.pid }, () => {});
   });
+
   const count = data.players.length;
-  document.getElementById('lobby-status').textContent = count < 6 ? `${count}/6 players joined` : 'Ready to start!';
-  document.getElementById('btn-start').classList.toggle('hidden', !isHost || count !== 6);
+  document.getElementById('lobby-status').textContent = count < 6 ? `${count}/6 players joined` : (balanced ? 'Ready to start!' : 'Teams must be 3 vs 3');
+
+  const lobbyErr = document.getElementById('lobby-error');
+  if (count === 6 && !balanced) {
+    lobbyErr.textContent = `Teams are ${t0Count} vs ${t1Count} — need 3 vs 3 to start`;
+  } else {
+    lobbyErr.textContent = '';
+  }
+
+  // Show start only if host + 6 players + balanced
+  document.getElementById('btn-start').classList.toggle('hidden', !(isHost && count === 6 && balanced));
 }
 
-// ── Socket Events ───────────────────────────────
+// ── Socket ──────────────────────────────────────
 socket.on('room-update', (data) => { if (data.state === 'lobby') updateLobby(data); });
 socket.on('game-state', (state) => {
   gameState = state;
-  if (state.state === 'playing' || state.state === 'finished') {
-    showScreen('game'); renderGame();
-  }
+  if (state.state === 'playing' || state.state === 'finished') { showScreen('game'); renderGame(); }
 });
 
 // ── Game Rendering ──────────────────────────────
@@ -723,17 +891,16 @@ function renderGame() {
   document.getElementById('game-room-code').textContent = gs.code;
   document.getElementById('score-0').textContent = gs.scores[0];
   document.getElementById('score-1').textContent = gs.scores[1];
-  renderTurnBanner();
+  renderTurnBar();
   renderPlayers();
   renderTablePits();
   renderCardFan();
   renderActions();
-  renderLog();
   renderGameOver();
-  renderLastCallToast();
+  renderLastCallBtn();
+  showToast();
 }
 
-// Rotate players so "you" are always seat 0 (bottom center)
 function getSeatingOrder() {
   const gs = gameState;
   const sorted = [...gs.players].sort((a, b) => a.seatIndex - b.seatIndex);
@@ -749,17 +916,14 @@ function renderPlayers() {
   const wrapper = document.getElementById('table-wrapper');
   const isMyTurn = gs.currentTurn === myPlayerId;
   const me = gs.players.find(p => p.isYou);
-
   wrapper.querySelectorAll('.player-seat').forEach(el => el.remove());
   const seating = getSeatingOrder();
 
   seating.forEach((p, i) => {
     const seat = document.createElement('div');
     seat.className = `player-seat seat-pos-${i}`;
-
     const isOpponent = me && p.team !== me.team;
     const canClick = isMyTurn && isOpponent && !p.droppedOut && !p.disconnected && gs.state === 'playing';
-
     const avatarCls = [
       'avatar', `team-${p.team}`,
       gs.currentTurn === p.id ? 'is-turn' : '',
@@ -784,14 +948,26 @@ function renderPlayers() {
   });
 }
 
+// ── Turn Bar ────────────────────────────────────
+function renderTurnBar() {
+  const gs = gameState;
+  const el = document.getElementById('turn-bar');
+  if (gs.state !== 'playing') { el.textContent = ''; el.className = 'turn-bar waiting'; return; }
+  if (gs.currentTurn === myPlayerId) {
+    el.innerHTML = '✦ <strong>Your turn</strong> — click an opponent to call a card';
+    el.className = 'turn-bar your-turn';
+  } else {
+    const turner = gs.players.find(p => p.id === gs.currentTurn);
+    el.textContent = `${turner ? turner.name : '…'}'s turn`;
+    el.className = 'turn-bar waiting';
+  }
+}
+
 // ── Call Dropdown ────────────────────────────────
 function openCallDropdown(targetPlayerId, avatarEl) {
   const dd = document.getElementById('call-dropdown');
   const gs = gameState;
-
-  if (callDropdownTarget === targetPlayerId && dd.classList.contains('active')) {
-    closeCallDropdown(); return;
-  }
+  if (callDropdownTarget === targetPlayerId && dd.classList.contains('active')) { closeCallDropdown(); return; }
   callDropdownTarget = targetPlayerId;
   const target = gs.players.find(p => p.id === targetPlayerId);
 
@@ -802,31 +978,27 @@ function openCallDropdown(targetPlayerId, avatarEl) {
     const pit = getPitNameClient(c);
     return myPits.has(pit) && !myCardIds.has(c.id) && !claimedPitNames.has(pit);
   });
-
   if (askable.length === 0) { closeCallDropdown(); return; }
 
   dd.innerHTML = `
     <div class="call-dropdown-header">Ask <strong>${target.name}</strong> for:</div>
     ${askable.map(c => {
-      const color = c.suit === 'Joker' ? (c.id === 'Joker-Red' ? 'red' : 'black') : SUIT_COLORS[c.suit];
       return `<div class="call-card-option" data-card="${c.id}">
-        <div class="call-card-mini ${color}">${c.display}</div>
-        <div class="call-card-label">${c.fullName}</div>
+        ${cardHTML(c, 'card-sm')}
+        <span style="font-size:0.82rem;color:var(--cream)">${cardFullName(c)}</span>
       </div>`;
     }).join('')}
   `;
 
   const rect = avatarEl.getBoundingClientRect();
-  const ddWidth = 220;
+  const ddWidth = 250;
   const centerX = rect.left + rect.width / 2;
   const vw = window.innerWidth;
-
   let left = centerX > vw / 2 ? rect.left - ddWidth - 10 : rect.right + 10;
-  let top = rect.top - 20;
-
+  let top = rect.top - 30;
   if (left < 8) left = 8;
   if (left + ddWidth > vw - 8) left = vw - ddWidth - 8;
-  if (top + 320 > window.innerHeight) top = window.innerHeight - 340;
+  if (top + 360 > window.innerHeight) top = window.innerHeight - 380;
   if (top < 8) top = 8;
 
   dd.style.left = left + 'px';
@@ -849,9 +1021,7 @@ function closeCallDropdown() {
 }
 
 document.addEventListener('click', (e) => {
-  if (!document.getElementById('call-dropdown').contains(e.target) && !e.target.closest('.avatar.clickable')) {
-    closeCallDropdown();
-  }
+  if (!document.getElementById('call-dropdown').contains(e.target) && !e.target.closest('.avatar.clickable')) closeCallDropdown();
 });
 
 // ── Table Pits ──────────────────────────────────
@@ -884,57 +1054,82 @@ function renderCardFan() {
   const pitNames = Object.keys(groups).sort();
   pitNames.forEach((pit, gi) => {
     groups[pit].forEach(c => {
-      const color = c.suit === 'Joker' ? (c.id === 'Joker-Red' ? 'red' : 'black') : SUIT_COLORS[c.suit];
-      html += `<div class="fan-card ${color}">${c.display}</div>`;
+      const cardObj = { suit: c.suit, value: c.value, id: c.id };
+      html += cardHTML(cardObj, 'card-md');
     });
     if (gi < pitNames.length - 1) html += '<div class="pit-spacer"></div>';
   });
   el.innerHTML = html;
 }
 
-// ── Turn Banner ─────────────────────────────────
-function renderTurnBanner() {
+// ── Last Call Button ────────────────────────────
+function renderLastCallBtn() {
   const gs = gameState;
-  const el = document.getElementById('turn-banner');
-  if (gs.state !== 'playing') { el.textContent = ''; return; }
-  if (gs.currentTurn === myPlayerId) {
-    el.innerHTML = '✦ <strong>Your turn</strong> — click an opponent to call for a card';
-  } else {
-    const turner = gs.players.find(p => p.id === gs.currentTurn);
-    el.textContent = `Waiting for ${turner ? turner.name : '…'}`;
+  const lc = gs.lastCall;
+  const btn = document.getElementById('last-call-btn');
+  const textEl = document.getElementById('last-call-text');
+
+  if (!lc) {
+    btn.classList.remove('visible');
+    return;
   }
-}
-
-// ── Last Call Toast ─────────────────────────────
-let lastCallTimeout = null;
-let lastCallKey = null;
-
-function renderLastCallToast() {
-  const lc = gameState.lastCall;
-  if (!lc) return;
-  const key = `${lc.callerName}-${lc.targetName}-${lc.cardDisplay}-${lc.success}`;
-  if (key === lastCallKey) return;
-  lastCallKey = key;
-
-  document.querySelectorAll('.last-call-toast').forEach(t => t.remove());
-  if (lastCallTimeout) clearTimeout(lastCallTimeout);
+  btn.classList.add('visible');
 
   let msg, cls;
   if (lc.invalid) {
-    msg = `⚠ ${lc.callerName} made an invalid call for ${lc.cardDisplay}!`;
+    msg = `⚠ <strong>${lc.callerName}</strong> made an invalid call for <strong>${lc.cardDisplay}</strong>`;
+    cls = 'lc-fail';
+  } else if (lc.success) {
+    msg = `<strong>${lc.callerName}</strong> asked <strong>${lc.targetName}</strong> for <strong>${lc.cardDisplay}</strong> — Got it!`;
+    cls = 'lc-success';
+  } else {
+    msg = `<strong>${lc.callerName}</strong> asked <strong>${lc.targetName}</strong> for <strong>${lc.cardDisplay}</strong> — Nope!`;
+    cls = 'lc-fail';
+  }
+  textEl.innerHTML = `<span class="${cls}">${msg}</span>`;
+}
+
+document.getElementById('last-call-trigger').onclick = (e) => {
+  e.stopPropagation();
+  document.getElementById('last-call-popup').classList.toggle('show');
+};
+document.addEventListener('click', (e) => {
+  if (!document.getElementById('last-call-btn').contains(e.target)) {
+    document.getElementById('last-call-popup').classList.remove('show');
+  }
+});
+
+// ── Toast (shows briefly on new call) ───────────
+let toastTimeout = null;
+let toastKey = null;
+
+function showToast() {
+  const lc = gameState.lastCall;
+  if (!lc) return;
+  // Only show toast for actual calls, not pit claims
+  const key = `${lc.callerName}-${lc.targetName}-${lc.cardDisplay}-${lc.success}`;
+  if (key === toastKey) return;
+  toastKey = key;
+
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  if (toastTimeout) clearTimeout(toastTimeout);
+
+  let msg, cls;
+  if (lc.invalid) {
+    msg = `⚠ ${lc.callerName} — invalid call for ${lc.cardDisplay}!`;
     cls = 'fail';
   } else if (lc.success) {
-    msg = `${lc.callerName} asked ${lc.targetName} for ${lc.cardDisplay} — Got it!`;
+    msg = `${lc.callerName} → ${lc.targetName}: ${lc.cardDisplay} ✓`;
     cls = 'success';
   } else {
-    msg = `${lc.callerName} asked ${lc.targetName} for ${lc.cardDisplay} — Nope!`;
+    msg = `${lc.callerName} → ${lc.targetName}: ${lc.cardDisplay} ✗`;
     cls = 'fail';
   }
   const toast = document.createElement('div');
-  toast.className = `last-call-toast ${cls}`;
+  toast.className = `toast ${cls}`;
   toast.textContent = msg;
   document.body.appendChild(toast);
-  lastCallTimeout = setTimeout(() => toast.remove(), 4000);
+  toastTimeout = setTimeout(() => toast.remove(), 3500);
 }
 
 // ── Actions ─────────────────────────────────────
@@ -981,24 +1176,43 @@ function renderActions() {
   document.getElementById('btn-pass')?.addEventListener('click', doPass);
 }
 
+// ── Claim Modal (smart: auto-assign owned cards) ─
 function openClaimModal() {
   const pitName = document.getElementById('select-claim-pit')?.value;
   if (!pitName) return alert('Select a pit to claim.');
   document.getElementById('claim-pit-name').textContent = pitName;
+
   const pitCards = getAllPitCards(pitName);
   const me = gameState.players.find(p => p.isYou);
   const teamMates = gameState.players.filter(p => p.team === me.team);
+  const myCardIds = new Set(gameState.myHand.map(c => c.id));
 
-  document.getElementById('claim-assignments').innerHTML = pitCards.map(c => {
-    const color = c.suit === 'Joker' ? (c.id === 'Joker-Red' ? 'red' : 'black') : SUIT_COLORS[c.suit];
-    const myCard = gameState.myHand.find(mc => mc.id === c.id);
-    return `<div class="claim-card-row">
-      <div class="claim-card-name ${color}">${c.display}</div>
-      <select data-card="${c.id}">
-        ${teamMates.map(p => `<option value="${p.id}" ${myCard && p.isYou ? 'selected' : ''}>${p.name}${p.isYou ? ' (you)' : ''}</option>`).join('')}
-      </select>
-    </div>`;
+  const el = document.getElementById('claim-assignments');
+  el.innerHTML = pitCards.map(c => {
+    const iOwn = myCardIds.has(c.id);
+    const colorClass = c.suit === 'Joker' ? (c.id === 'Joker-Red' ? 'suit-joker-red' : 'suit-joker-black')
+      : (SUIT_COLORS[c.suit] === 'red' ? 'suit-red' : 'suit-black');
+
+    if (iOwn) {
+      // Auto-assigned, no dropdown needed
+      return `<div class="claim-card-row auto-assigned" data-card="${c.id}" data-auto="${me.id}">
+        ${cardHTML(c, 'card-sm')}
+        <span class="ccr-label">${cardFullName(c)}</span>
+        <span class="ccr-auto">You</span>
+      </div>`;
+    } else {
+      // Need to guess — only show teammates (not self since we don't have it)
+      const otherTeammates = teamMates.filter(p => !p.isYou);
+      return `<div class="claim-card-row" data-card="${c.id}">
+        ${cardHTML(c, 'card-sm')}
+        <span class="ccr-label">${cardFullName(c)}</span>
+        <select data-card="${c.id}">
+          ${otherTeammates.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+        </select>
+      </div>`;
+    }
   }).join('');
+
   document.getElementById('claim-modal').classList.add('active');
 }
 
@@ -1006,9 +1220,20 @@ document.getElementById('claim-cancel').onclick = () => document.getElementById(
 document.getElementById('claim-submit').onclick = () => {
   const pitName = document.getElementById('claim-pit-name').textContent;
   const assignments = [];
-  document.querySelectorAll('#claim-assignments select').forEach(sel => {
-    assignments.push({ cardId: sel.dataset.card, playerId: sel.value });
+  const me = gameState.players.find(p => p.isYou);
+
+  // Gather all assignments (auto + guessed)
+  document.querySelectorAll('#claim-assignments .claim-card-row').forEach(row => {
+    const cardId = row.dataset.card;
+    const autoPlayer = row.dataset.auto;
+    if (autoPlayer) {
+      assignments.push({ cardId, playerId: autoPlayer });
+    } else {
+      const sel = row.querySelector('select');
+      if (sel) assignments.push({ cardId, playerId: sel.value });
+    }
   });
+
   socket.emit('claim-pit', { pitName, assignments }, (res) => { if (!res.success) alert(res.error); });
   document.getElementById('claim-modal').classList.remove('active');
 };
@@ -1017,11 +1242,6 @@ function doPass() {
   const targetId = document.getElementById('select-pass-target')?.value;
   if (!targetId) return;
   socket.emit('pass-turn', { targetTeammateId: targetId }, (res) => { if (!res.success) alert(res.error); });
-}
-
-function renderLog() {
-  document.getElementById('game-log').innerHTML = gameState.log.slice().reverse()
-    .map(l => `<div class="log-entry">${l.msg}</div>`).join('');
 }
 
 function renderGameOver() {
@@ -1034,22 +1254,18 @@ function renderGameOver() {
 // ── Card Helpers ────────────────────────────────
 function buildAllCards() {
   const SUITS = ['Hearts','Diamonds','Clubs','Spades'];
-  const SYM = { Hearts:'♥', Diamonds:'♦', Clubs:'♣', Spades:'♠' };
-  const NAMES = {2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',9:'9',10:'10',11:'Jack',12:'Queen',13:'King',14:'Ace'};
-  const SHORT = {11:'J',12:'Q',13:'K',14:'A'};
   const cards = [];
   for (const suit of SUITS) {
     for (let v = 2; v <= 14; v++) {
       if (v === 8) continue;
-      const s = SHORT[v] || v.toString();
-      cards.push({ suit, value: v, id: `${v}-${suit}`, display: `${s}${SYM[suit]}`, fullName: `${NAMES[v]} of ${suit}` });
+      cards.push({ suit, value: v, id: `${v}-${suit}`, fullName: `${VALUE_NAMES[v]} of ${suit}` });
     }
   }
   for (const suit of SUITS) {
-    cards.push({ suit, value: 8, id: `8-${suit}`, display: `8${SYM[suit]}`, fullName: `8 of ${suit}` });
+    cards.push({ suit, value: 8, id: `8-${suit}`, fullName: `8 of ${suit}` });
   }
-  cards.push({ suit:'Joker', value:0, id:'Joker-Red', display:'Red\nJkr', fullName:'Red Joker' });
-  cards.push({ suit:'Joker', value:1, id:'Joker-Black', display:'Blk\nJkr', fullName:'Black Joker' });
+  cards.push({ suit:'Joker', value:0, id:'Joker-Red', fullName:'Red Joker' });
+  cards.push({ suit:'Joker', value:1, id:'Joker-Black', fullName:'Black Joker' });
   return cards;
 }
 
@@ -1063,7 +1279,7 @@ function getAllPitCards(pitName) {
   return buildAllCards().filter(c => getPitNameClient(c) === pitName);
 }
 
-// ── Reconnection ────────────────────────────────
+// ── Reconnect ───────────────────────────────────
 window.addEventListener('load', () => {
   const savedPid = localStorage.getItem('lit_pid');
   const savedRoom = localStorage.getItem('lit_room');

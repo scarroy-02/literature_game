@@ -271,8 +271,10 @@ io.on('connection', (socket) => {
   socket.on('swap-team', ({ targetPlayerId }, cb) => {
     const room = getRoom(currentRoom);
     if (!room || room.state !== 'lobby') return cb({ success: false });
-    // Only allow in lobby and if the host (first player) requests it
-    if (room.players[0].id !== playerId) return cb({ success: false, error: 'Only host can rearrange.' });
+    // Any player can swap themselves; host can swap anyone
+    const isHost = room.players[0].id === playerId;
+    const isSelf = targetPlayerId === playerId;
+    if (!isHost && !isSelf) return cb({ success: false, error: 'You can only swap yourself.' });
 
     const target = getPlayerById(room, targetPlayerId);
     if (!target) return cb({ success: false });
