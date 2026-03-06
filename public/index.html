@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Literature — Card Game</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="/socket.io/socket.io.js"></script>
 <style>
 :root {
   --bg: #0a0f0d;
-  --felt: #0d1f17;
-  --felt-light: #132a20;
+  --felt: #145a32;
+  --felt-dark: #0d3d22;
+  --felt-rim: #0b2e1a;
   --gold: #c8a84e;
   --gold-dim: #8a7235;
   --gold-bright: #e8c95a;
@@ -19,10 +20,12 @@
   --cream: #f0e6d3;
   --cream-dim: #b8a88a;
   --white: #f5f1eb;
-  --team1: #4a90d9;
-  --team1-bg: rgba(74,144,217,0.12);
-  --team2: #e8834a;
-  --team2-bg: rgba(232,131,74,0.12);
+  --team-blue: #5b9fd4;
+  --team-blue-bg: rgba(91,159,212,0.15);
+  --team-blue-strong: #78b8ef;
+  --team-red: #e07050;
+  --team-red-bg: rgba(224,112,80,0.15);
+  --team-red-strong: #f08a6e;
   --card-bg: #fffef8;
   --shadow: 0 2px 12px rgba(0,0,0,0.4);
   --radius: 8px;
@@ -36,16 +39,14 @@ body {
   color: var(--cream);
   min-height: 100vh;
   overflow-x: hidden;
+  user-select: none;
 }
 
-/* ── Felt texture background ─────────────────────── */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 50% 30%, rgba(20,60,40,0.4) 0%, transparent 70%),
-    repeating-conic-gradient(rgba(255,255,255,0.01) 0% 25%, transparent 0% 50%) 0 0 / 4px 4px;
+  background: radial-gradient(ellipse at 50% 40%, rgba(15,50,30,0.5) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -58,7 +59,6 @@ body::before {
   padding: 20px;
 }
 
-/* ── Typography ─────────────────────────────────── */
 h1, h2, h3 { font-family: 'DM Serif Display', serif; }
 
 h1 {
@@ -68,7 +68,6 @@ h1 {
   letter-spacing: 0.04em;
   text-shadow: 0 2px 20px rgba(200,168,78,0.3);
 }
-
 h1 span {
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 0.9rem;
@@ -94,7 +93,6 @@ h1 span {
   letter-spacing: 0.02em;
 }
 .btn:active { transform: scale(0.97); }
-
 .btn-gold {
   background: linear-gradient(135deg, var(--gold), var(--gold-dim));
   color: var(--bg);
@@ -102,20 +100,12 @@ h1 span {
 }
 .btn-gold:hover { background: linear-gradient(135deg, var(--gold-bright), var(--gold)); }
 .btn-gold:disabled { opacity: 0.4; cursor: not-allowed; }
-
 .btn-outline {
   background: transparent;
   color: var(--gold);
   border: 1px solid var(--gold-dim);
 }
 .btn-outline:hover { background: rgba(200,168,78,0.1); }
-
-.btn-danger {
-  background: var(--red);
-  color: white;
-}
-.btn-danger:hover { background: var(--red-soft); }
-
 .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
 
 /* ── Input ──────────────────────────────────────── */
@@ -123,7 +113,7 @@ input[type="text"] {
   font-family: 'JetBrains Mono', monospace;
   font-size: 1.1rem;
   padding: 12px 16px;
-  background: var(--felt);
+  background: rgba(10,15,13,0.6);
   border: 1px solid var(--gold-dim);
   border-radius: var(--radius);
   color: var(--gold-bright);
@@ -133,24 +123,21 @@ input[type="text"] {
   width: 100%;
 }
 input[type="text"]:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(200,168,78,0.2); }
-
 input.name-input {
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 1rem;
   letter-spacing: 0.02em;
-  text-transform: none;
 }
 
-/* ── Panels ─────────────────────────────────────── */
 .panel {
-  background: var(--felt);
+  background: rgba(13,31,23,0.8);
   border: 1px solid rgba(200,168,78,0.15);
   border-radius: 12px;
   padding: 28px;
   box-shadow: var(--shadow);
 }
 
-/* ── Screen: Lobby Join ─────────────────────────── */
+/* ═══════ HOME SCREEN ═══════ */
 #screen-home {
   display: flex;
   flex-direction: column;
@@ -159,7 +146,6 @@ input.name-input {
   min-height: 90vh;
   gap: 32px;
 }
-
 .home-actions {
   display: flex;
   flex-direction: column;
@@ -167,13 +153,7 @@ input.name-input {
   width: 100%;
   max-width: 380px;
 }
-
-.home-actions .panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
+.home-actions .panel { display: flex; flex-direction: column; gap: 12px; }
 .divider {
   text-align: center;
   color: var(--cream-dim);
@@ -182,7 +162,7 @@ input.name-input {
   text-transform: uppercase;
 }
 
-/* ── Screen: Lobby ──────────────────────────────── */
+/* ═══════ LOBBY SCREEN ═══════ */
 #screen-lobby {
   display: none;
   flex-direction: column;
@@ -190,24 +170,16 @@ input.name-input {
   gap: 24px;
   padding-top: 40px;
 }
-
 .room-code-display {
   font-family: 'JetBrains Mono', monospace;
   font-size: 2.4rem;
   color: var(--gold-bright);
   letter-spacing: 0.3em;
-  text-shadow: 0 0 30px rgba(200,168,78,0.2);
   cursor: pointer;
   transition: color 0.2s;
 }
 .room-code-display:hover { color: var(--gold); }
-
-.copy-hint {
-  font-size: 0.75rem;
-  color: var(--cream-dim);
-  margin-top: -16px;
-}
-
+.copy-hint { font-size: 0.75rem; color: var(--cream-dim); margin-top: -16px; }
 .teams-container {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -216,477 +188,354 @@ input.name-input {
   max-width: 700px;
   align-items: start;
 }
-
-.team-panel {
-  padding: 20px;
-  border-radius: 12px;
-  min-height: 180px;
-}
-.team-panel.t0 { background: var(--team1-bg); border: 1px solid rgba(74,144,217,0.2); }
-.team-panel.t1 { background: var(--team2-bg); border: 1px solid rgba(232,131,74,0.2); }
-
-.team-label {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.1rem;
-  margin-bottom: 12px;
-}
-.t0 .team-label { color: var(--team1); }
-.t1 .team-label { color: var(--team2); }
-
+.team-panel { padding: 20px; border-radius: 12px; min-height: 180px; }
+.team-panel.t0 { background: var(--team-blue-bg); border: 1px solid rgba(91,159,212,0.2); }
+.team-panel.t1 { background: var(--team-red-bg); border: 1px solid rgba(224,112,80,0.2); }
+.team-label { font-family: 'DM Serif Display', serif; font-size: 1.1rem; margin-bottom: 12px; }
+.t0 .team-label { color: var(--team-blue); }
+.t1 .team-label { color: var(--team-red); }
 .team-player {
-  padding: 8px 12px;
-  margin: 4px 0;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: 8px 12px; margin: 4px 0; border-radius: 6px; font-size: 0.9rem;
+  display: flex; justify-content: space-between; align-items: center;
 }
-.t0 .team-player { background: rgba(74,144,217,0.08); }
-.t1 .team-player { background: rgba(232,131,74,0.08); }
-
+.t0 .team-player { background: rgba(91,159,212,0.08); }
+.t1 .team-player { background: rgba(224,112,80,0.08); }
 .team-player .host-badge {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--gold);
-  background: rgba(200,168,78,0.15);
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--gold); background: rgba(200,168,78,0.15); padding: 2px 6px; border-radius: 4px;
 }
-
 .team-player .swap-btn {
-  font-size: 0.7rem;
-  color: var(--cream-dim);
-  background: none;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 4px;
-  padding: 2px 8px;
-  cursor: pointer;
-  font-family: inherit;
+  font-size: 0.7rem; color: var(--cream-dim); background: none;
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 4px;
+  padding: 2px 8px; cursor: pointer; font-family: inherit;
 }
 .team-player .swap-btn:hover { color: var(--cream); border-color: rgba(255,255,255,0.3); }
-
 .vs-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.3rem;
-  color: var(--gold-dim);
-  padding-top: 60px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--gold-dim); padding-top: 60px;
 }
+.waiting-msg { color: var(--cream-dim); font-size: 0.85rem; text-align: center; }
 
-.waiting-msg {
-  color: var(--cream-dim);
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-/* ── Screen: Game ───────────────────────────────── */
+/* ═══════ GAME SCREEN ═══════ */
 #screen-game { display: none; }
 
-.game-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
+.game-top-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px; padding: 0 8px;
 }
-
-.game-title {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.4rem;
-  color: var(--gold);
-}
-
-.scoreboard {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  font-size: 0.9rem;
-}
-
+.game-title-sm { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--gold); }
+.game-code-sm { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--cream-dim); margin-left: 8px; }
+.scoreboard { display: flex; gap: 12px; align-items: center; }
 .score-item {
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
+  padding: 5px 14px; border-radius: 20px; font-weight: 600;
+  font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;
 }
-.score-t0 { background: var(--team1-bg); color: var(--team1); border: 1px solid rgba(74,144,217,0.3); }
-.score-t1 { background: var(--team2-bg); color: var(--team2); border: 1px solid rgba(232,131,74,0.3); }
+.score-t0 { background: var(--team-blue-bg); color: var(--team-blue); border: 1px solid rgba(91,159,212,0.3); }
+.score-t1 { background: var(--team-red-bg); color: var(--team-red); border: 1px solid rgba(224,112,80,0.3); }
 
-.game-layout {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 20px;
-}
-
-@media (max-width: 900px) {
-  .game-layout { grid-template-columns: 1fr; }
-}
-
-/* ── Table (player circle) ──────────────────────── */
-.table-area {
-  background: radial-gradient(ellipse at center, var(--felt-light) 0%, var(--felt) 100%);
-  border: 1px solid rgba(200,168,78,0.12);
-  border-radius: 16px;
-  padding: 24px;
-  min-height: 300px;
+/* ── The Table ──────────────────────────────────── */
+.table-wrapper {
   position: relative;
-}
-
-.players-circle {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.player-seat {
-  width: 150px;
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
-  position: relative;
-  transition: all 0.3s;
-  border: 2px solid transparent;
-}
-.player-seat.t0 { background: rgba(74,144,217,0.06); }
-.player-seat.t1 { background: rgba(232,131,74,0.06); }
-.player-seat.current-turn {
-  border-color: var(--gold);
-  box-shadow: 0 0 20px rgba(200,168,78,0.15);
-}
-.player-seat.is-you {
-  box-shadow: inset 0 0 0 1px rgba(200,168,78,0.3);
-}
-.player-seat.dropped-out { opacity: 0.35; }
-.player-seat.disconnected::after {
-  content: 'DC';
-  position: absolute;
-  top: 4px; right: 6px;
-  font-size: 0.55rem;
-  color: var(--red-soft);
-  font-weight: 600;
-  background: rgba(192,57,43,0.2);
-  padding: 1px 5px;
-  border-radius: 3px;
-}
-
-.player-name {
-  font-weight: 500;
-  font-size: 0.85rem;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.player-seat.t0 .player-name { color: var(--team1); }
-.player-seat.t1 .player-name { color: var(--team2); }
-
-.player-cards-count {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.3rem;
-  color: var(--cream);
-  font-weight: 500;
-}
-.player-cards-label {
-  font-size: 0.65rem;
-  color: var(--cream-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.turn-indicator {
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--gold);
-  margin-top: 4px;
-}
-
-/* ── Last call banner ───────────────────────────── */
-.last-call-banner {
-  margin-top: 16px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  text-align: center;
-  animation: fadeSlideIn 0.3s ease;
-}
-.last-call-banner.success { background: rgba(39,174,96,0.15); color: #6dca8e; border: 1px solid rgba(39,174,96,0.2); }
-.last-call-banner.fail { background: rgba(192,57,43,0.12); color: #e88; border: 1px solid rgba(192,57,43,0.2); }
-
-@keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ── My Hand ────────────────────────────────────── */
-.my-hand-section {
-  margin-top: 20px;
-}
-.my-hand-section h3 {
-  color: var(--gold);
-  font-size: 1rem;
-  margin-bottom: 12px;
-}
-
-.pit-group {
-  margin-bottom: 14px;
-}
-.pit-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--cream-dim);
-  margin-bottom: 6px;
-  padding-left: 2px;
-}
-.pit-cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.card {
-  width: 52px;
-  height: 72px;
-  background: var(--card-bg);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: default;
-  transition: all 0.15s;
-  border: 2px solid transparent;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  user-select: none;
-  position: relative;
-}
-.card.red { color: #c0392b; }
-.card.black { color: #1a1a2e; }
-.card.joker {
-  font-size: 0.65rem;
-  line-height: 1.2;
-  text-align: center;
-}
-.card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-.card.selected {
-  border-color: var(--gold);
-  transform: translateY(-5px);
-  box-shadow: 0 4px 16px rgba(200,168,78,0.4);
-}
-
-/* ── Sidebar ────────────────────────────────────── */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.action-panel {
-  padding: 16px;
-}
-.action-panel h3 {
-  font-size: 0.95rem;
-  color: var(--gold);
-  margin-bottom: 12px;
-}
-
-.action-section {
-  margin-bottom: 14px;
-}
-.action-label {
-  font-size: 0.7rem;
-  color: var(--cream-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 6px;
-}
-
-select {
-  font-family: 'IBM Plex Sans', sans-serif;
   width: 100%;
-  padding: 8px 10px;
-  background: var(--bg);
-  color: var(--cream);
-  border: 1px solid rgba(200,168,78,0.2);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  outline: none;
-  cursor: pointer;
+  max-width: 900px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 10;
+  min-height: 460px;
 }
-select:focus { border-color: var(--gold-dim); }
 
-.call-preview {
-  font-size: 0.8rem;
-  color: var(--cream-dim);
-  padding: 8px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 6px;
-  margin-top: 8px;
-  text-align: center;
-  min-height: 32px;
+.table-felt {
+  position: absolute;
+  top: 50px; left: 50px; right: 50px; bottom: 80px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 45%, #1a7a45 0%, #145a32 40%, #0f4528 70%, #0b3420 100%);
+  border: 8px solid var(--felt-rim);
+  box-shadow:
+    inset 0 0 60px rgba(0,0,0,0.3),
+    0 0 0 12px rgba(11,46,26,0.6),
+    0 0 0 14px rgba(200,168,78,0.08),
+    0 8px 40px rgba(0,0,0,0.5);
+}
+.table-felt::before {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255,255,255,0.008) 0% 25%, transparent 0% 50%) 0 0 / 3px 3px;
+  pointer-events: none;
+}
+
+/* ── Claimed pits on the table ──────────────────── */
+.table-pits {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex; flex-wrap: wrap; gap: 6px;
+  justify-content: center; max-width: 340px; z-index: 2;
+}
+.table-pit {
+  padding: 4px 10px; border-radius: 5px;
+  font-size: 0.65rem; font-weight: 600; letter-spacing: 0.03em;
+  font-family: 'IBM Plex Sans', sans-serif; text-transform: uppercase;
+  transition: all 0.3s;
+}
+.table-pit.unclaimed {
+  background: rgba(0,0,0,0.25); color: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.table-pit.team-0 {
+  background: rgba(91,159,212,0.25); color: var(--team-blue-strong);
+  border: 1px solid rgba(91,159,212,0.35); box-shadow: 0 0 8px rgba(91,159,212,0.15);
+}
+.table-pit.team-1 {
+  background: rgba(224,112,80,0.25); color: var(--team-red-strong);
+  border: 1px solid rgba(224,112,80,0.35); box-shadow: 0 0 8px rgba(224,112,80,0.15);
+}
+
+/* ── Player seats around the table ──────────────── */
+.player-seat {
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  z-index: 5; transition: all 0.3s;
+}
+
+/* 6 seats: 0=bottom-center(you), going clockwise */
+.seat-pos-0 { bottom: -12px; left: 50%; transform: translateX(-50%); }
+.seat-pos-1 { bottom: 20%; left: 1%; }
+.seat-pos-2 { top: 6%; left: 6%; }
+.seat-pos-3 { top: -18px; left: 50%; transform: translateX(-50%); }
+.seat-pos-4 { top: 6%; right: 6%; }
+.seat-pos-5 { bottom: 20%; right: 1%; }
+
+.avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; font-weight: 600;
+  transition: all 0.2s; position: relative; border: 3px solid transparent;
+}
+.avatar.team-0 {
+  background: linear-gradient(135deg, rgba(91,159,212,0.25), rgba(91,159,212,0.08));
+  color: var(--team-blue); border-color: rgba(91,159,212,0.4);
+}
+.avatar.team-1 {
+  background: linear-gradient(135deg, rgba(224,112,80,0.25), rgba(224,112,80,0.08));
+  color: var(--team-red); border-color: rgba(224,112,80,0.4);
+}
+.avatar.is-turn {
+  box-shadow: 0 0 0 3px rgba(200,168,78,0.5), 0 0 18px rgba(200,168,78,0.3);
+  border-color: var(--gold);
+}
+.avatar.clickable { cursor: pointer; }
+.avatar.clickable:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 20px rgba(255,255,255,0.12);
+}
+.avatar.dropped-out { opacity: 0.3; filter: grayscale(0.8); }
+.avatar.disconnected::after {
+  content: '!'; position: absolute; top: -4px; right: -4px;
+  width: 16px; height: 16px; background: var(--red-soft); border-radius: 50%;
+  font-size: 0.55rem; color: white; display: flex; align-items: center; justify-content: center;
+}
+
+.seat-name {
+  font-size: 0.72rem; font-weight: 500; color: var(--cream);
+  white-space: nowrap; max-width: 80px; overflow: hidden;
+  text-overflow: ellipsis; text-align: center;
+}
+.seat-name.you { color: var(--gold); font-weight: 600; }
+.seat-cards-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem; color: var(--cream-dim);
+}
+
+/* ── Call dropdown ──────────────────────────────── */
+.call-dropdown {
+  position: fixed; z-index: 50;
+  background: rgba(10,15,13,0.96);
+  border: 1px solid rgba(200,168,78,0.25);
+  border-radius: 10px; padding: 8px;
+  min-width: 210px; max-height: 340px;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  display: none;
+}
+.call-dropdown.active { display: block; }
+.call-dropdown::-webkit-scrollbar { width: 4px; }
+.call-dropdown::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+.call-dropdown-header {
+  font-size: 0.72rem; color: var(--cream-dim);
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 4px;
+}
+.call-card-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px; border-radius: 6px; cursor: pointer;
+  transition: background 0.15s;
+}
+.call-card-option:hover { background: rgba(200,168,78,0.12); }
+.call-card-mini {
+  width: 34px; height: 46px; background: var(--card-bg);
+  border-radius: 4px; display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3); flex-shrink: 0;
+  line-height: 1.1; text-align: center;
+}
+.call-card-mini.red { color: #c0392b; }
+.call-card-mini.black { color: #1a1a2e; }
+.call-card-label { font-size: 0.82rem; color: var(--cream); }
+
+/* ── Card Fan ───────────────────────────────────── */
+.card-fan-area {
+  position: relative; width: 100%; max-width: 900px;
+  margin: -28px auto 0; height: 110px;
+  display: flex; justify-content: center; align-items: flex-end;
+  z-index: 10;
+}
+.card-fan {
+  display: flex; justify-content: center; position: relative; height: 100px;
+}
+.fan-card {
+  width: 54px; height: 78px; background: var(--card-bg);
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700;
+  border: 2px solid rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  cursor: default; transition: all 0.2s; position: relative;
+  flex-shrink: 0; margin: 0 -3px;
+  line-height: 1.1; text-align: center;
+}
+.fan-card.red { color: #c0392b; }
+.fan-card.black { color: #1a1a2e; }
+.fan-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  z-index: 2;
+}
+.pit-spacer { width: 14px; flex-shrink: 0; }
+
+/* ── Last call toast ────────────────────────────── */
+.last-call-toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  padding: 10px 24px; border-radius: 10px; font-size: 0.85rem;
+  z-index: 100; animation: toastIn 0.3s ease;
+  pointer-events: none; text-align: center; max-width: 90%;
+}
+.last-call-toast.success {
+  background: rgba(30,100,60,0.92); color: #7dda9a; border: 1px solid rgba(39,174,96,0.3);
+}
+.last-call-toast.fail {
+  background: rgba(100,30,30,0.92); color: #f0a0a0; border: 1px solid rgba(192,57,43,0.3);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── Turn banner ────────────────────────────────── */
+.turn-banner {
+  text-align: center; font-size: 0.82rem; color: var(--gold);
+  padding: 6px; margin-bottom: 6px;
+}
+
+/* ── Bottom bar ─────────────────────────────────── */
+.bottom-bar {
+  max-width: 900px; margin: 16px auto 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+@media (max-width: 700px) { .bottom-bar { grid-template-columns: 1fr; } }
+
+.bottom-panel {
+  background: rgba(13,31,23,0.7); border: 1px solid rgba(200,168,78,0.1);
+  border-radius: 10px; padding: 14px;
+}
+.bottom-panel h3 { font-size: 0.85rem; color: var(--gold); margin-bottom: 8px; }
+
+.claim-row, .pass-row {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.pass-row { margin-top: 8px; }
+.claim-row select, .pass-row select {
+  font-family: 'IBM Plex Sans', sans-serif; padding: 6px 10px;
+  background: var(--bg); color: var(--cream);
+  border: 1px solid rgba(200,168,78,0.2); border-radius: 6px;
+  font-size: 0.8rem; outline: none; cursor: pointer; flex: 1; min-width: 120px;
+}
+
+.log-entries {
+  max-height: 140px; overflow-y: auto;
+  font-size: 0.72rem; color: var(--cream-dim);
+}
+.log-entries::-webkit-scrollbar { width: 3px; }
+.log-entries::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+.log-entry {
+  padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); line-height: 1.4;
 }
 
 /* ── Claim Modal ────────────────────────────────── */
 .modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 100;
-  align-items: center;
-  justify-content: center;
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 200;
+  align-items: center; justify-content: center;
   backdrop-filter: blur(4px);
 }
 .modal-overlay.active { display: flex; }
-
 .modal {
-  background: var(--felt);
-  border: 1px solid rgba(200,168,78,0.2);
-  border-radius: 16px;
-  padding: 28px;
-  max-width: 500px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
+  background: rgba(13,40,25,0.97); border: 1px solid rgba(200,168,78,0.2);
+  border-radius: 16px; padding: 28px; max-width: 460px; width: 90%;
+  max-height: 80vh; overflow-y: auto;
   box-shadow: 0 8px 40px rgba(0,0,0,0.5);
 }
-.modal h3 {
-  color: var(--gold);
-  margin-bottom: 16px;
-}
-
+.modal h3 { color: var(--gold); margin-bottom: 16px; }
 .claim-card-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-  padding: 8px;
-  background: rgba(0,0,0,0.15);
-  border-radius: 8px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 8px; padding: 8px;
+  background: rgba(0,0,0,0.2); border-radius: 8px;
 }
-
 .claim-card-name {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
-  width: 80px;
-  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  width: 70px; flex-shrink: 0;
 }
 .claim-card-name.red { color: #e74c3c; }
 .claim-card-name.black { color: var(--cream); }
-
-.claim-card-row select { flex: 1; }
-
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-  justify-content: flex-end;
+.claim-card-row select {
+  flex: 1; font-family: 'IBM Plex Sans', sans-serif; padding: 6px 10px;
+  background: var(--bg); color: var(--cream);
+  border: 1px solid rgba(200,168,78,0.2); border-radius: 6px;
+  font-size: 0.82rem; outline: none;
 }
-
-/* ── Pits tracker ───────────────────────────────── */
-.pits-panel { padding: 16px; }
-.pits-panel h3 {
-  font-size: 0.95rem;
-  color: var(--gold);
-  margin-bottom: 10px;
-}
-
-.pit-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 8px;
-  font-size: 0.8rem;
-  border-radius: 4px;
-  margin-bottom: 3px;
-}
-.pit-row.claimed-0 { background: var(--team1-bg); color: var(--team1); }
-.pit-row.claimed-1 { background: var(--team2-bg); color: var(--team2); }
-.pit-row.unclaimed { color: var(--cream-dim); }
-
-.pit-status {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-/* ── Game Log ───────────────────────────────────── */
-.log-panel { padding: 16px; }
-.log-panel h3 {
-  font-size: 0.95rem;
-  color: var(--gold);
-  margin-bottom: 8px;
-}
-
-.log-entries {
-  max-height: 200px;
-  overflow-y: auto;
-  font-size: 0.75rem;
-  color: var(--cream-dim);
-}
-.log-entries::-webkit-scrollbar { width: 4px; }
-.log-entries::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
-
-.log-entry {
-  padding: 3px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  line-height: 1.4;
-}
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
 
 /* ── Game Over ──────────────────────────────────── */
 .game-over-banner {
-  text-align: center;
-  padding: 30px;
-  margin-bottom: 20px;
-  border-radius: 16px;
+  text-align: center; padding: 30px; margin-bottom: 16px; border-radius: 16px;
   background: linear-gradient(135deg, rgba(200,168,78,0.1), rgba(200,168,78,0.03));
   border: 1px solid rgba(200,168,78,0.2);
 }
-.game-over-banner h2 {
-  font-size: 2rem;
-  color: var(--gold);
-  margin-bottom: 8px;
-}
+.game-over-banner h2 { font-size: 2rem; color: var(--gold); margin-bottom: 8px; }
 .game-over-banner .final-score {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.2rem;
-  color: var(--cream);
+  font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: var(--cream);
 }
 
 /* ── Responsive ─────────────────────────────────── */
 @media (max-width: 600px) {
   h1 { font-size: 2rem; }
-  .player-seat { width: 100px; padding: 8px; }
-  .player-cards-count { font-size: 1rem; }
-  .card { width: 44px; height: 62px; font-size: 0.75rem; }
-  .game-header { flex-direction: column; align-items: flex-start; }
+  .table-wrapper { min-height: 360px; }
+  .table-felt { top: 35px; left: 25px; right: 25px; bottom: 55px; }
+  .avatar { width: 40px; height: 40px; font-size: 1rem; }
+  .seat-name { font-size: 0.6rem; max-width: 60px; }
+  .fan-card { width: 42px; height: 60px; font-size: 0.7rem; }
+  .seat-pos-1 { left: -2%; }
+  .seat-pos-2 { left: 0%; }
+  .seat-pos-4 { right: 0%; }
+  .seat-pos-5 { right: -2%; }
 }
 
-/* Utility */
 .hidden { display: none !important; }
-.text-center { text-align: center; }
-.mt-8 { margin-top: 8px; }
-.mt-16 { margin-top: 16px; }
-.mb-8 { margin-bottom: 8px; }
 </style>
 </head>
 <body>
 
 <!-- ═══════════════ HOME SCREEN ═══════════════ -->
 <div id="screen-home" class="container">
-  <div>
-    <h1>Literature<span>The Card Game</span></h1>
-  </div>
+  <div><h1>Literature<span>The Card Game</span></h1></div>
   <div class="home-actions">
     <div class="panel">
       <input type="text" id="player-name" class="name-input" placeholder="Your name" maxlength="20">
@@ -707,7 +556,7 @@ select:focus { border-color: var(--gold-dim); }
 <div id="screen-lobby" class="container">
   <h1>Lobby<span>Waiting for players</span></h1>
   <div class="room-code-display" id="lobby-code" title="Click to copy"></div>
-  <div class="copy-hint">click code to copy • share with friends</div>
+  <div class="copy-hint">click code to copy · share with friends</div>
   <div class="teams-container">
     <div class="team-panel panel t0">
       <div class="team-label">Team 1</div>
@@ -720,53 +569,42 @@ select:focus { border-color: var(--gold-dim); }
     </div>
   </div>
   <div class="waiting-msg" id="lobby-status"></div>
-  <button class="btn btn-gold mt-16 hidden" id="btn-start">Start Game</button>
+  <button class="btn btn-gold hidden" id="btn-start" style="margin-top:16px">Start Game</button>
 </div>
 
 <!-- ═══════════════ GAME SCREEN ═══════════════ -->
 <div id="screen-game" class="container">
   <div id="game-over-area"></div>
-  <div class="game-header">
-    <div class="game-title">Literature <span style="font-family:'JetBrains Mono';font-size:0.7em;color:var(--cream-dim)" id="game-room-code"></span></div>
+  <div class="game-top-bar">
+    <div>
+      <span class="game-title-sm">Literature</span>
+      <span class="game-code-sm" id="game-room-code"></span>
+    </div>
     <div class="scoreboard">
-      <div class="score-item score-t0">Team 1: <span id="score-0">0</span></div>
-      <div class="score-item score-t1">Team 2: <span id="score-1">0</span></div>
+      <div class="score-item score-t0">T1: <span id="score-0">0</span></div>
+      <div class="score-item score-t1">T2: <span id="score-1">0</span></div>
+    </div>
+  </div>
+  <div id="turn-banner" class="turn-banner"></div>
+
+  <div class="table-wrapper" id="table-wrapper">
+    <div class="table-felt">
+      <div class="table-pits" id="table-pits"></div>
     </div>
   </div>
 
-  <div class="game-layout">
-    <div>
-      <!-- Player circle -->
-      <div class="table-area">
-        <div class="players-circle" id="players-circle"></div>
-        <div id="last-call-area"></div>
-      </div>
+  <div class="card-fan-area">
+    <div class="card-fan" id="card-fan"></div>
+  </div>
 
-      <!-- My Hand -->
-      <div class="my-hand-section" id="my-hand-section">
-        <h3>Your Hand</h3>
-        <div id="my-hand"></div>
-      </div>
+  <div class="bottom-bar">
+    <div class="bottom-panel" id="actions-panel">
+      <h3>Actions</h3>
+      <div id="actions-content"></div>
     </div>
-
-    <div class="sidebar">
-      <!-- Actions -->
-      <div class="panel action-panel" id="action-panel">
-        <h3>Your Turn</h3>
-        <div id="action-content"></div>
-      </div>
-
-      <!-- Pits -->
-      <div class="panel pits-panel">
-        <h3>Pits</h3>
-        <div id="pits-list"></div>
-      </div>
-
-      <!-- Log -->
-      <div class="panel log-panel">
-        <h3>Game Log</h3>
-        <div class="log-entries" id="game-log"></div>
-      </div>
+    <div class="bottom-panel">
+      <h3>Game Log</h3>
+      <div class="log-entries" id="game-log"></div>
     </div>
   </div>
 </div>
@@ -786,35 +624,36 @@ select:focus { border-color: var(--gold-dim); }
   </div>
 </div>
 
+<!-- Call dropdown (positioned dynamically) -->
+<div class="call-dropdown" id="call-dropdown"></div>
+
 <script>
-// ── State ───────────────────────────────────────────────────────────────
+// ── State ───────────────────────────────────────
 const socket = io();
 let myPlayerId = null;
 let gameState = null;
-let selectedCard = null;
 let roomCode = null;
+let callDropdownTarget = null;
 
-const SUIT_COLORS = { Hearts: 'red', Diamonds: 'red', Clubs: 'black', Spades: 'black', Joker: 'red' };
+const SUIT_COLORS = { Hearts:'red', Diamonds:'red', Clubs:'black', Spades:'black', Joker:'red' };
+const SUIT_SYM = { Hearts:'♥', Diamonds:'♦', Clubs:'♣', Spades:'♠' };
 
-// ── Screens ─────────────────────────────────────────────────────────────
 function showScreen(id) {
   document.getElementById('screen-home').style.display = id === 'home' ? 'flex' : 'none';
   document.getElementById('screen-lobby').style.display = id === 'lobby' ? 'flex' : 'none';
   document.getElementById('screen-game').style.display = id === 'game' ? 'block' : 'none';
 }
 
-// ── Home ────────────────────────────────────────────────────────────────
+// ── Home ────────────────────────────────────────
 document.getElementById('btn-create').onclick = () => {
   const name = document.getElementById('player-name').value.trim();
   if (!name) return showError('Enter your name');
   socket.emit('create-room', { playerName: name }, (res) => {
     if (res.success) {
-      myPlayerId = res.playerId;
-      roomCode = res.code;
+      myPlayerId = res.playerId; roomCode = res.code;
       localStorage.setItem('lit_pid', myPlayerId);
       localStorage.setItem('lit_room', roomCode);
-      showScreen('lobby');
-      updateLobby(res.room);
+      showScreen('lobby'); updateLobby(res.room);
     } else showError(res.error);
   });
 };
@@ -826,17 +665,13 @@ document.getElementById('btn-join').onclick = () => {
   if (!code) return showError('Enter room code');
   socket.emit('join-room', { code, playerName: name }, (res) => {
     if (res.success) {
-      myPlayerId = res.playerId;
-      roomCode = res.code;
+      myPlayerId = res.playerId; roomCode = res.code;
       localStorage.setItem('lit_pid', myPlayerId);
       localStorage.setItem('lit_room', roomCode);
       if (res.room.state === 'playing' || res.room.state === 'finished') {
-        gameState = res.room;
-        showScreen('game');
-        renderGame();
+        gameState = res.room; showScreen('game'); renderGame();
       } else {
-        showScreen('lobby');
-        updateLobby(res.room);
+        showScreen('lobby'); updateLobby(res.room);
       }
     } else showError(res.error);
   });
@@ -844,22 +679,17 @@ document.getElementById('btn-join').onclick = () => {
 
 function showError(msg) { document.getElementById('home-error').textContent = msg; }
 
-// ── Lobby ───────────────────────────────────────────────────────────────
+// ── Lobby ───────────────────────────────────────
 document.getElementById('lobby-code').onclick = () => {
   navigator.clipboard.writeText(roomCode).catch(() => {});
-  document.getElementById('copy-hint')?.classList.add('copied');
 };
-
 document.getElementById('btn-start').onclick = () => {
-  socket.emit('start-game', null, (res) => {
-    if (!res.success) alert(res.error);
-  });
+  socket.emit('start-game', null, (res) => { if (!res.success) alert(res.error); });
 };
 
 function updateLobby(data) {
   document.getElementById('lobby-code').textContent = data.code || roomCode;
   const isHost = data.players[0]?.id === myPlayerId;
-
   for (let t = 0; t < 2; t++) {
     const el = document.getElementById(`team${t}-players`);
     const tPlayers = data.players.filter(p => p.team === t);
@@ -870,244 +700,297 @@ function updateLobby(data) {
       return `<div class="team-player">${isMe ? '→ ' : ''}${p.name} ${hostBadge}${swapBtn}</div>`;
     }).join('') || '<div style="color:var(--cream-dim);font-size:0.8rem;padding:8px;">waiting...</div>';
   }
-
-  // Swap button handlers
   document.querySelectorAll('.swap-btn').forEach(btn => {
-    btn.onclick = () => {
-      socket.emit('swap-team', { targetPlayerId: btn.dataset.pid }, () => {});
-    };
+    btn.onclick = () => socket.emit('swap-team', { targetPlayerId: btn.dataset.pid }, () => {});
   });
-
   const count = data.players.length;
   document.getElementById('lobby-status').textContent = count < 6 ? `${count}/6 players joined` : 'Ready to start!';
   document.getElementById('btn-start').classList.toggle('hidden', !isHost || count !== 6);
 }
 
-// ── Socket Events ───────────────────────────────────────────────────────
-socket.on('room-update', (data) => {
-  if (data.state === 'lobby') updateLobby(data);
-});
-
+// ── Socket Events ───────────────────────────────
+socket.on('room-update', (data) => { if (data.state === 'lobby') updateLobby(data); });
 socket.on('game-state', (state) => {
   gameState = state;
   if (state.state === 'playing' || state.state === 'finished') {
-    showScreen('game');
-    renderGame();
+    showScreen('game'); renderGame();
   }
 });
 
-// ── Game Rendering ──────────────────────────────────────────────────────
+// ── Game Rendering ──────────────────────────────
 function renderGame() {
-  const gs = gameState;
-  if (!gs) return;
-
+  const gs = gameState; if (!gs) return;
   document.getElementById('game-room-code').textContent = gs.code;
   document.getElementById('score-0').textContent = gs.scores[0];
   document.getElementById('score-1').textContent = gs.scores[1];
-
+  renderTurnBanner();
   renderPlayers();
-  renderLastCall();
-  renderHand();
+  renderTablePits();
+  renderCardFan();
   renderActions();
-  renderPits();
   renderLog();
   renderGameOver();
+  renderLastCallToast();
+}
+
+// Rotate players so "you" are always seat 0 (bottom center)
+function getSeatingOrder() {
+  const gs = gameState;
+  const sorted = [...gs.players].sort((a, b) => a.seatIndex - b.seatIndex);
+  const myIdx = sorted.findIndex(p => p.isYou);
+  if (myIdx < 0) return sorted;
+  const rotated = [];
+  for (let i = 0; i < sorted.length; i++) rotated.push(sorted[(myIdx + i) % sorted.length]);
+  return rotated;
 }
 
 function renderPlayers() {
   const gs = gameState;
-  const el = document.getElementById('players-circle');
-  // Sort by seatIndex
-  const sorted = [...gs.players].sort((a, b) => a.seatIndex - b.seatIndex);
-  el.innerHTML = sorted.map(p => {
-    const classes = [
-      'player-seat',
-      `t${p.team}`,
-      gs.currentTurn === p.id ? 'current-turn' : '',
-      p.isYou ? 'is-you' : '',
+  const wrapper = document.getElementById('table-wrapper');
+  const isMyTurn = gs.currentTurn === myPlayerId;
+  const me = gs.players.find(p => p.isYou);
+
+  wrapper.querySelectorAll('.player-seat').forEach(el => el.remove());
+  const seating = getSeatingOrder();
+
+  seating.forEach((p, i) => {
+    const seat = document.createElement('div');
+    seat.className = `player-seat seat-pos-${i}`;
+
+    const isOpponent = me && p.team !== me.team;
+    const canClick = isMyTurn && isOpponent && !p.droppedOut && !p.disconnected && gs.state === 'playing';
+
+    const avatarCls = [
+      'avatar', `team-${p.team}`,
+      gs.currentTurn === p.id ? 'is-turn' : '',
+      canClick ? 'clickable' : '',
       p.droppedOut ? 'dropped-out' : '',
       p.disconnected ? 'disconnected' : '',
     ].filter(Boolean).join(' ');
-    return `
-      <div class="${classes}">
-        <div class="player-name">${p.isYou ? '★ ' : ''}${p.name}</div>
-        <div class="player-cards-count">${p.cardCount}</div>
-        <div class="player-cards-label">cards</div>
-        ${gs.currentTurn === p.id ? '<div class="turn-indicator">● their turn</div>' : ''}
+
+    seat.innerHTML = `
+      <div class="${avatarCls}" data-pid="${p.id}">${p.name.charAt(0).toUpperCase()}</div>
+      <div class="seat-name ${p.isYou ? 'you' : ''}">${p.isYou ? '★ You' : p.name}</div>
+      <div class="seat-cards-count">${p.cardCount} cards</div>
+    `;
+    wrapper.appendChild(seat);
+
+    if (canClick) {
+      seat.querySelector('.avatar').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openCallDropdown(p.id, seat.querySelector('.avatar'));
+      });
+    }
+  });
+}
+
+// ── Call Dropdown ────────────────────────────────
+function openCallDropdown(targetPlayerId, avatarEl) {
+  const dd = document.getElementById('call-dropdown');
+  const gs = gameState;
+
+  if (callDropdownTarget === targetPlayerId && dd.classList.contains('active')) {
+    closeCallDropdown(); return;
+  }
+  callDropdownTarget = targetPlayerId;
+  const target = gs.players.find(p => p.id === targetPlayerId);
+
+  const myCardIds = new Set(gs.myHand.map(c => c.id));
+  const myPits = new Set(gs.myHand.map(c => c.pit));
+  const claimedPitNames = new Set(Object.keys(gs.claimedPits));
+  const askable = buildAllCards().filter(c => {
+    const pit = getPitNameClient(c);
+    return myPits.has(pit) && !myCardIds.has(c.id) && !claimedPitNames.has(pit);
+  });
+
+  if (askable.length === 0) { closeCallDropdown(); return; }
+
+  dd.innerHTML = `
+    <div class="call-dropdown-header">Ask <strong>${target.name}</strong> for:</div>
+    ${askable.map(c => {
+      const color = c.suit === 'Joker' ? (c.id === 'Joker-Red' ? 'red' : 'black') : SUIT_COLORS[c.suit];
+      return `<div class="call-card-option" data-card="${c.id}">
+        <div class="call-card-mini ${color}">${c.display}</div>
+        <div class="call-card-label">${c.fullName}</div>
       </div>`;
+    }).join('')}
+  `;
+
+  const rect = avatarEl.getBoundingClientRect();
+  const ddWidth = 220;
+  const centerX = rect.left + rect.width / 2;
+  const vw = window.innerWidth;
+
+  let left = centerX > vw / 2 ? rect.left - ddWidth - 10 : rect.right + 10;
+  let top = rect.top - 20;
+
+  if (left < 8) left = 8;
+  if (left + ddWidth > vw - 8) left = vw - ddWidth - 8;
+  if (top + 320 > window.innerHeight) top = window.innerHeight - 340;
+  if (top < 8) top = 8;
+
+  dd.style.left = left + 'px';
+  dd.style.top = top + 'px';
+  dd.classList.add('active');
+
+  dd.querySelectorAll('.call-card-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      socket.emit('call-card', { targetPlayerId, cardId: opt.dataset.card }, (res) => {
+        if (!res.success) alert(res.error);
+      });
+      closeCallDropdown();
+    });
+  });
+}
+
+function closeCallDropdown() {
+  document.getElementById('call-dropdown').classList.remove('active');
+  callDropdownTarget = null;
+}
+
+document.addEventListener('click', (e) => {
+  if (!document.getElementById('call-dropdown').contains(e.target) && !e.target.closest('.avatar.clickable')) {
+    closeCallDropdown();
+  }
+});
+
+// ── Table Pits ──────────────────────────────────
+function renderTablePits() {
+  const gs = gameState;
+  document.getElementById('table-pits').innerHTML = gs.allPits.map(pit => {
+    const claimed = gs.claimedPits[pit];
+    let cls = 'unclaimed';
+    if (claimed === 0) cls = 'team-0';
+    else if (claimed === 1) cls = 'team-1';
+    const short = pit.replace('Eights & Jokers', '8s + Jkr').replace('Low ', 'L ').replace('High ', 'H ');
+    return `<div class="table-pit ${cls}">${short}</div>`;
   }).join('');
 }
 
-function renderLastCall() {
-  const lc = gameState.lastCall;
-  const el = document.getElementById('last-call-area');
-  if (!lc) { el.innerHTML = ''; return; }
-  const cls = lc.success ? 'success' : 'fail';
-  let msg = '';
-  if (lc.invalid) {
-    msg = `⚠ ${lc.callerName} made an invalid call for ${lc.cardDisplay}!`;
-  } else if (lc.success) {
-    msg = `${lc.callerName} asked ${lc.targetName} for ${lc.cardDisplay} — Got it!`;
-  } else {
-    msg = `${lc.callerName} asked ${lc.targetName} for ${lc.cardDisplay} — Nope!`;
-  }
-  el.innerHTML = `<div class="last-call-banner ${cls}">${msg}</div>`;
-}
-
-function renderHand() {
+// ── Card Fan ────────────────────────────────────
+function renderCardFan() {
   const gs = gameState;
-  const el = document.getElementById('my-hand');
-  if (!gs.myHand || gs.myHand.length === 0) {
-    el.innerHTML = '<p style="color:var(--cream-dim);font-size:0.85rem;">No cards remaining.</p>';
-    return;
-  }
+  const el = document.getElementById('card-fan');
+  if (!gs.myHand || gs.myHand.length === 0) { el.innerHTML = ''; return; }
 
-  // Group by pit
   const groups = {};
   for (const c of gs.myHand) {
     if (!groups[c.pit]) groups[c.pit] = [];
     groups[c.pit].push(c);
   }
+  for (const pit in groups) groups[pit].sort((a, b) => a.value - b.value);
 
-  // Sort cards within each pit
-  const sortVal = (c) => c.suit === 'Joker' ? c.value : c.value;
-  for (const pit in groups) groups[pit].sort((a, b) => sortVal(a) - sortVal(b));
-
-  el.innerHTML = Object.keys(groups).sort().map(pit => {
-    const cards = groups[pit].map(c => {
+  let html = '';
+  const pitNames = Object.keys(groups).sort();
+  pitNames.forEach((pit, gi) => {
+    groups[pit].forEach(c => {
       const color = c.suit === 'Joker' ? (c.id === 'Joker-Red' ? 'red' : 'black') : SUIT_COLORS[c.suit];
-      const sel = selectedCard === c.id ? 'selected' : '';
-      const isJoker = c.suit === 'Joker';
-      return `<div class="card ${color} ${sel} ${isJoker ? 'joker' : ''}" data-id="${c.id}" onclick="selectCard('${c.id}')">${c.display}</div>`;
-    }).join('');
-    return `<div class="pit-group"><div class="pit-label">${pit}</div><div class="pit-cards">${cards}</div></div>`;
-  }).join('');
+      html += `<div class="fan-card ${color}">${c.display}</div>`;
+    });
+    if (gi < pitNames.length - 1) html += '<div class="pit-spacer"></div>';
+  });
+  el.innerHTML = html;
 }
 
-function selectCard(cardId) {
-  selectedCard = selectedCard === cardId ? null : cardId;
-  renderHand();
-  renderActions();
+// ── Turn Banner ─────────────────────────────────
+function renderTurnBanner() {
+  const gs = gameState;
+  const el = document.getElementById('turn-banner');
+  if (gs.state !== 'playing') { el.textContent = ''; return; }
+  if (gs.currentTurn === myPlayerId) {
+    el.innerHTML = '✦ <strong>Your turn</strong> — click an opponent to call for a card';
+  } else {
+    const turner = gs.players.find(p => p.id === gs.currentTurn);
+    el.textContent = `Waiting for ${turner ? turner.name : '…'}`;
+  }
 }
 
+// ── Last Call Toast ─────────────────────────────
+let lastCallTimeout = null;
+let lastCallKey = null;
+
+function renderLastCallToast() {
+  const lc = gameState.lastCall;
+  if (!lc) return;
+  const key = `${lc.callerName}-${lc.targetName}-${lc.cardDisplay}-${lc.success}`;
+  if (key === lastCallKey) return;
+  lastCallKey = key;
+
+  document.querySelectorAll('.last-call-toast').forEach(t => t.remove());
+  if (lastCallTimeout) clearTimeout(lastCallTimeout);
+
+  let msg, cls;
+  if (lc.invalid) {
+    msg = `⚠ ${lc.callerName} made an invalid call for ${lc.cardDisplay}!`;
+    cls = 'fail';
+  } else if (lc.success) {
+    msg = `${lc.callerName} asked ${lc.targetName} for ${lc.cardDisplay} — Got it!`;
+    cls = 'success';
+  } else {
+    msg = `${lc.callerName} asked ${lc.targetName} for ${lc.cardDisplay} — Nope!`;
+    cls = 'fail';
+  }
+  const toast = document.createElement('div');
+  toast.className = `last-call-toast ${cls}`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  lastCallTimeout = setTimeout(() => toast.remove(), 4000);
+}
+
+// ── Actions ─────────────────────────────────────
 function renderActions() {
   const gs = gameState;
-  const el = document.getElementById('action-content');
-  const panel = document.getElementById('action-panel');
-
+  const el = document.getElementById('actions-content');
   const me = gs.players.find(p => p.isYou);
   const isMyTurn = gs.currentTurn === myPlayerId;
 
   if (gs.state === 'finished' || me.droppedOut) {
-    panel.style.display = 'none';
-    return;
+    el.innerHTML = '<span style="color:var(--cream-dim);font-size:0.8rem;">—</span>'; return;
   }
-  panel.style.display = 'block';
-
   if (!isMyTurn) {
-    el.innerHTML = '<p style="color:var(--cream-dim);font-size:0.85rem;">Waiting for opponent\'s move…</p>';
-    return;
+    el.innerHTML = '<span style="color:var(--cream-dim);font-size:0.8rem;">Waiting for your turn…</span>'; return;
   }
 
-  // Opponents
-  const opponents = gs.players.filter(p => p.team !== me.team && !p.droppedOut);
   const teammates = gs.players.filter(p => p.team === me.team && !p.isYou && !p.droppedOut);
-
-  // Build available cards to ask for (cards in same pits as my cards but that I don't have)
-  const myCardIds = new Set(gs.myHand.map(c => c.id));
   const myPits = new Set(gs.myHand.map(c => c.pit));
   const claimedPitNames = new Set(Object.keys(gs.claimedPits));
-  const askableCards = [];
-
-  // Build all possible cards from my pits that I don't own
-  const ALL_CARDS = buildAllCards();
-  for (const c of ALL_CARDS) {
-    const pit = getPitNameClient(c);
-    if (myPits.has(pit) && !myCardIds.has(c.id) && !claimedPitNames.has(pit)) {
-      askableCards.push(c);
-    }
-  }
+  const claimablePits = [...myPits].filter(p => !claimedPitNames.has(p));
 
   let html = '';
-
-  // Call section
-  html += `<div class="action-section">
-    <div class="action-label">Call a Card</div>
-    <select id="select-opponent">
-      <option value="">Select opponent…</option>
-      ${opponents.map(p => `<option value="${p.id}">${p.name} (${p.cardCount} cards)</option>`).join('')}
-    </select>
-    <select id="select-card" class="mt-8">
-      <option value="">Select card to ask for…</option>
-      ${askableCards.map(c => `<option value="${c.id}">${c.display} (${getPitNameClient(c)})</option>`).join('')}
-    </select>
-    <button class="btn btn-gold btn-sm mt-8" style="width:100%" id="btn-call">Ask for Card</button>
-  </div>`;
-
-  // Or select from hand if you clicked a card to see pit options
-  if (selectedCard) {
-    const card = gs.myHand.find(c => c.id === selectedCard);
-    if (card) {
-      const pitCards = askableCards.filter(c => getPitNameClient(c) === card.pit);
-      html += `<div class="call-preview">Selected: ${card.display} — you can ask for ${pitCards.length} other cards from ${card.pit}</div>`;
-    }
-  }
-
-  // Claim section
-  const claimablePits = [...myPits].filter(p => !claimedPitNames.has(p));
   if (claimablePits.length > 0) {
-    html += `<div class="action-section mt-16">
-      <div class="action-label">Claim a Pit</div>
+    html += `<div class="claim-row">
       <select id="select-claim-pit">
-        <option value="">Select pit…</option>
+        <option value="">Claim a pit…</option>
         ${claimablePits.map(p => `<option value="${p}">${p}</option>`).join('')}
       </select>
-      <button class="btn btn-outline btn-sm mt-8" style="width:100%" id="btn-claim">Claim Pit</button>
+      <button class="btn btn-gold btn-sm" id="btn-claim">Claim</button>
     </div>`;
   }
-
-  // Pass section
   if (gs.myHand.length === 1 && teammates.length > 0) {
-    html += `<div class="action-section mt-16">
-      <div class="action-label">Pass the Baton</div>
+    html += `<div class="pass-row">
       <select id="select-pass-target">
         ${teammates.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
       </select>
-      <button class="btn btn-outline btn-sm mt-8" style="width:100%" id="btn-pass">Pass Card & Turn</button>
+      <button class="btn btn-outline btn-sm" id="btn-pass">Pass Baton</button>
     </div>`;
   }
+  if (!html) html = '<span style="color:var(--cream-dim);font-size:0.8rem;">Click an opponent to call a card.</span>';
 
   el.innerHTML = html;
-
-  // Event handlers
-  document.getElementById('btn-call')?.addEventListener('click', doCall);
   document.getElementById('btn-claim')?.addEventListener('click', openClaimModal);
   document.getElementById('btn-pass')?.addEventListener('click', doPass);
-}
-
-function doCall() {
-  const targetId = document.getElementById('select-opponent')?.value;
-  const cardId = document.getElementById('select-card')?.value;
-  if (!targetId || !cardId) return alert('Select an opponent and a card.');
-  socket.emit('call-card', { targetPlayerId: targetId, cardId }, (res) => {
-    if (!res.success) alert(res.error);
-    selectedCard = null;
-  });
 }
 
 function openClaimModal() {
   const pitName = document.getElementById('select-claim-pit')?.value;
   if (!pitName) return alert('Select a pit to claim.');
-
   document.getElementById('claim-pit-name').textContent = pitName;
   const pitCards = getAllPitCards(pitName);
   const me = gameState.players.find(p => p.isYou);
   const teamMates = gameState.players.filter(p => p.team === me.team);
 
-  const el = document.getElementById('claim-assignments');
-  el.innerHTML = pitCards.map(c => {
+  document.getElementById('claim-assignments').innerHTML = pitCards.map(c => {
     const color = c.suit === 'Joker' ? (c.id === 'Joker-Red' ? 'red' : 'black') : SUIT_COLORS[c.suit];
-    // Pre-select if I have this card
     const myCard = gameState.myHand.find(mc => mc.id === c.id);
     return `<div class="claim-card-row">
       <div class="claim-card-name ${color}">${c.display}</div>
@@ -1116,81 +999,57 @@ function openClaimModal() {
       </select>
     </div>`;
   }).join('');
-
   document.getElementById('claim-modal').classList.add('active');
 }
 
-document.getElementById('claim-cancel').onclick = () => {
-  document.getElementById('claim-modal').classList.remove('active');
-};
-
+document.getElementById('claim-cancel').onclick = () => document.getElementById('claim-modal').classList.remove('active');
 document.getElementById('claim-submit').onclick = () => {
   const pitName = document.getElementById('claim-pit-name').textContent;
-  const selects = document.querySelectorAll('#claim-assignments select');
   const assignments = [];
-  selects.forEach(sel => {
+  document.querySelectorAll('#claim-assignments select').forEach(sel => {
     assignments.push({ cardId: sel.dataset.card, playerId: sel.value });
   });
-  socket.emit('claim-pit', { pitName, assignments }, (res) => {
-    if (!res.success) alert(res.error);
-  });
+  socket.emit('claim-pit', { pitName, assignments }, (res) => { if (!res.success) alert(res.error); });
   document.getElementById('claim-modal').classList.remove('active');
 };
 
 function doPass() {
   const targetId = document.getElementById('select-pass-target')?.value;
   if (!targetId) return;
-  socket.emit('pass-turn', { targetTeammateId: targetId }, (res) => {
-    if (!res.success) alert(res.error);
-  });
-}
-
-function renderPits() {
-  const gs = gameState;
-  const el = document.getElementById('pits-list');
-  el.innerHTML = gs.allPits.map(pit => {
-    const claimed = gs.claimedPits[pit];
-    const cls = claimed !== undefined ? `claimed-${claimed}` : 'unclaimed';
-    const status = claimed !== undefined ? `Team ${claimed + 1}` : '—';
-    return `<div class="pit-row ${cls}"><span>${pit}</span><span class="pit-status">${status}</span></div>`;
-  }).join('');
+  socket.emit('pass-turn', { targetTeammateId: targetId }, (res) => { if (!res.success) alert(res.error); });
 }
 
 function renderLog() {
-  const gs = gameState;
-  const el = document.getElementById('game-log');
-  el.innerHTML = gs.log.slice().reverse().map(l => `<div class="log-entry">${l.msg}</div>`).join('');
+  document.getElementById('game-log').innerHTML = gameState.log.slice().reverse()
+    .map(l => `<div class="log-entry">${l.msg}</div>`).join('');
 }
 
 function renderGameOver() {
-  const gs = gameState;
-  const el = document.getElementById('game-over-area');
+  const gs = gameState; const el = document.getElementById('game-over-area');
   if (gs.state !== 'finished') { el.innerHTML = ''; return; }
-  const winner = gs.scores[0] > gs.scores[1] ? 'Team 1 Wins!' : gs.scores[1] > gs.scores[0] ? 'Team 2 Wins!' : 'It\'s a Tie!';
-  el.innerHTML = `<div class="game-over-banner">
-    <h2>${winner}</h2>
-    <div class="final-score">${gs.scores[0]} — ${gs.scores[1]}</div>
-  </div>`;
+  const w = gs.scores[0] > gs.scores[1] ? 'Team 1 Wins!' : gs.scores[1] > gs.scores[0] ? 'Team 2 Wins!' : "It's a Tie!";
+  el.innerHTML = `<div class="game-over-banner"><h2>${w}</h2><div class="final-score">${gs.scores[0]} — ${gs.scores[1]}</div></div>`;
 }
 
-// ── Client-side card helpers ────────────────────────────────────────────
+// ── Card Helpers ────────────────────────────────
 function buildAllCards() {
-  const SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
-  const SUIT_SYM = { Hearts: '♥', Diamonds: '♦', Clubs: '♣', Spades: '♠' };
+  const SUITS = ['Hearts','Diamonds','Clubs','Spades'];
+  const SYM = { Hearts:'♥', Diamonds:'♦', Clubs:'♣', Spades:'♠' };
+  const NAMES = {2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',9:'9',10:'10',11:'Jack',12:'Queen',13:'King',14:'Ace'};
+  const SHORT = {11:'J',12:'Q',13:'K',14:'A'};
   const cards = [];
   for (const suit of SUITS) {
     for (let v = 2; v <= 14; v++) {
       if (v === 8) continue;
-      const names = { 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
-      const vName = names[v] || v.toString();
-      cards.push({ suit, value: v, id: `${v}-${suit}`, display: `${vName}${SUIT_SYM[suit]}` });
+      const s = SHORT[v] || v.toString();
+      cards.push({ suit, value: v, id: `${v}-${suit}`, display: `${s}${SYM[suit]}`, fullName: `${NAMES[v]} of ${suit}` });
     }
   }
   for (const suit of SUITS) {
-    cards.push({ suit, value: 8, id: `8-${suit}`, display: `8${SUIT_SYM[suit]}` });
+    cards.push({ suit, value: 8, id: `8-${suit}`, display: `8${SYM[suit]}`, fullName: `8 of ${suit}` });
   }
-  cards.push({ suit: 'Joker', value: 0, id: 'Joker-Red', display: 'Red\nJkr' });
-  cards.push({ suit: 'Joker', value: 1, id: 'Joker-Black', display: 'Blk\nJkr' });
+  cards.push({ suit:'Joker', value:0, id:'Joker-Red', display:'Red\nJkr', fullName:'Red Joker' });
+  cards.push({ suit:'Joker', value:1, id:'Joker-Black', display:'Blk\nJkr', fullName:'Black Joker' });
   return cards;
 }
 
@@ -1204,35 +1063,23 @@ function getAllPitCards(pitName) {
   return buildAllCards().filter(c => getPitNameClient(c) === pitName);
 }
 
-// ── Reconnection ────────────────────────────────────────────────────────
+// ── Reconnection ────────────────────────────────
 window.addEventListener('load', () => {
   const savedPid = localStorage.getItem('lit_pid');
   const savedRoom = localStorage.getItem('lit_room');
   if (savedPid && savedRoom) {
     socket.emit('reconnect-room', { code: savedRoom, pid: savedPid }, (res) => {
       if (res.success) {
-        myPlayerId = savedPid;
-        roomCode = savedRoom;
-        gameState = res.room;
-        if (res.room.state === 'playing' || res.room.state === 'finished') {
-          showScreen('game');
-          renderGame();
-        } else {
-          showScreen('lobby');
-          updateLobby(res.room);
-        }
+        myPlayerId = savedPid; roomCode = savedRoom; gameState = res.room;
+        if (res.room.state === 'playing' || res.room.state === 'finished') { showScreen('game'); renderGame(); }
+        else { showScreen('lobby'); updateLobby(res.room); }
       }
     });
   }
 });
 
-// Enter key support
-document.getElementById('player-name').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('btn-create').click();
-});
-document.getElementById('room-code-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('btn-join').click();
-});
+document.getElementById('player-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('btn-create').click(); });
+document.getElementById('room-code-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('btn-join').click(); });
 </script>
 </body>
 </html>
