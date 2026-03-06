@@ -16,9 +16,9 @@ Then open **http://localhost:3000** in your browser.
 
 ## Playing with Friends Online
 
-To play with friends over the internet, you have a few options:
+To play this directly: https://literature-game.onrender.com/
 
-### Option 1: ngrok (easiest)
+<!-- ### Option 1: ngrok (easiest)
 ```bash
 # Install ngrok from https://ngrok.com
 ngrok http 3000
@@ -31,7 +31,7 @@ Deploy to **Railway**, **Render**, **Fly.io**, or any Node.js hosting:
 - Set the `PORT` environment variable if needed (defaults to 3000)
 
 ### Option 3: Port forwarding
-Forward port 3000 on your router and share your public IP.
+Forward port 3000 on your router and share your public IP. -->
 
 ## How to Play
 
