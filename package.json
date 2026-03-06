@@ -1,0 +1,25 @@
+{
+  "name": "literature_game",
+  "version": "1.0.0",
+  "description": "A web-based multiplayer version of the **Literature** card game (also known as *Fish*) for 6 players in 2 teams of 3.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scarroy-02/literature_game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/scarroy-02/literature_game/issues"
+  },
+  "homepage": "https://github.com/scarroy-02/literature_game#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  }
+}
