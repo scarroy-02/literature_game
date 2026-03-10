@@ -368,88 +368,29 @@ input.name-input {
 }
 .call-card-option:hover { background: rgba(200,168,78,0.12); }
 
-/* ── Realistic Playing Card (CSS) ───────────────── */
+/* ── Playing Card (sprite-based) ─────────────────── */
+/* Sprite: 4400x2800, 11 cols x 5 rows, each card 400x560 at 4x */
 .playing-card {
   position: relative;
-  background: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
+  background-image: url('cards/sprite.png');
+  background-repeat: no-repeat;
 }
-.playing-card::before {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border: 1px solid rgba(0,0,0,0.06);
-  border-radius: 4px;
-  pointer-events: none;
-}
-
-/* Corner labels */
-.card-corner {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1;
-}
-.card-corner.tl { top: 3px; left: 4px; }
-.card-corner.br { bottom: 3px; right: 4px; transform: rotate(180deg); }
-
-.card-corner-val {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-}
-.card-corner-suit {
-  line-height: 1;
-}
-
-/* Center pip */
-.card-center {
-  font-size: inherit;
-  line-height: 1;
-}
-
-.playing-card.suit-red { color: #c0392b; }
-.playing-card.suit-black { color: #1a1a2e; }
-.playing-card.suit-joker-red { color: #c0392b; }
-.playing-card.suit-joker-black { color: #2c3e50; }
 
 /* Card sizes */
 .card-sm {
-  width: 38px; height: 52px; font-size: 1rem;
+  width: 38px; height: 53px;
+  /* sprite scale: 38/400 = 0.095 → bg-size = 4400*0.095 x 2800*0.095 = 418 x 266 */
+  background-size: 418px 266px;
 }
-.card-sm .card-corner { font-size: 0.5rem; }
-.card-sm .card-corner-val { font-size: 0.55rem; }
-.card-sm .card-corner-suit { font-size: 0.45rem; }
-.card-sm .card-center { font-size: 1rem; }
 
 .card-md {
-  width: 58px; height: 82px; font-size: 1.5rem;
-}
-.card-md .card-corner-val { font-size: 0.7rem; }
-.card-md .card-corner-suit { font-size: 0.6rem; }
-.card-md .card-center { font-size: 1.5rem; }
-
-.card-md.joker-card .card-center {
-  font-size: 0.6rem;
-  font-family: 'DM Serif Display', serif;
-  font-weight: 700;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  letter-spacing: 0.05em;
-}
-
-.card-sm.joker-card .card-center {
-  font-size: 0.45rem;
-  font-family: 'DM Serif Display', serif;
-  font-weight: 700;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+  width: 58px; height: 81px;
+  /* sprite scale: 58/400 = 0.145 → bg-size = 4400*0.145 x 2800*0.145 = 638 x 406 */
+  background-size: 638px 406px;
 }
 
 /* ── Card Fan ───────────────────────────────────── */
@@ -628,10 +569,7 @@ input.name-input {
   .table-felt { top: 40px; left: 25px; right: 25px; bottom: 40px; }
   .avatar { width: 40px; height: 40px; font-size: 1rem; }
   .seat-name { font-size: 0.6rem; max-width: 56px; }
-  .card-md { width: 46px; height: 66px; }
-  .card-md .card-corner-val { font-size: 0.55rem; }
-  .card-md .card-corner-suit { font-size: 0.45rem; }
-  .card-md .card-center { font-size: 1.1rem; }
+  .card-md { width: 46px; height: 64px; background-size: 506px 322px; }
   .seat-pos-0 { bottom: -16px; }
   .seat-pos-1 { left: -2%; }
   .seat-pos-2 { left: 0%; }
@@ -758,26 +696,33 @@ const VALUE_NAMES = {2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'10',11:
 const VALUE_SHORT = {11:'J',12:'Q',13:'K',14:'A'};
 
 // ── Card HTML builder ──────────────────────────
+// Sprite layout: 11 cols x 5 rows, each cell 400x560 at 4x
+// Row 0: [back, A♠, 2♠, 3♠, ..., 10♠]  (back + spades A-10)
+// Row 1: [J♠, Q♠, K♠, A♥, 2♥, ..., 8♥]
+// Row 2: [9♥, 10♥, J♥, Q♥, K♥, A♣, 2♣, 3♣, 4♣, 5♣, 6♣]
+// Row 3: [7♣, 8♣, 9♣, 10♣, J♣, Q♣, K♣, A♦, 2♦, 3♦, 4♦]
+// Row 4: [5♦, 6♦, 7♦, 8♦, 9♦, 10♦, J♦, Q♦, K♦, Joker1, Joker2]
+// Card i (0-based, after back) → sprite position = i+1
+
+function getCardSpriteIndex(card) {
+  // Returns 1-based index in the sprite (0 = back)
+  if (card.suit === 'Joker') return card.id === 'Joker-Red' ? 54 : 53;
+  const suitOffset = { Spades: 0, Hearts: 13, Clubs: 26, Diamonds: 39 };
+  // Within suit: A=0, 2=1, ..., 10=9, J=10, Q=11, K=12
+  const valueOffset = card.value === 14 ? 0 : card.value - 1;
+  return suitOffset[card.suit] + valueOffset + 1; // +1 for the back card at position 0
+}
+
 function cardHTML(card, sizeClass) {
-  if (card.suit === 'Joker') {
-    const isRed = card.id === 'Joker-Red';
-    const colorClass = isRed ? 'suit-joker-red' : 'suit-joker-black';
-    const label = isRed ? 'JOKER' : 'JOKER';
-    const star = '★';
-    return `<div class="playing-card ${sizeClass} ${colorClass} joker-card">
-      <div class="card-corner tl"><span class="card-corner-val">${star}</span></div>
-      <div class="card-center">${label}</div>
-      <div class="card-corner br"><span class="card-corner-val">${star}</span></div>
-    </div>`;
-  }
-  const v = VALUE_SHORT[card.value] || card.value.toString();
-  const s = SUIT_SYM[card.suit];
-  const colorClass = SUIT_COLORS[card.suit] === 'red' ? 'suit-red' : 'suit-black';
-  return `<div class="playing-card ${sizeClass} ${colorClass}">
-    <div class="card-corner tl"><span class="card-corner-val">${v}</span><span class="card-corner-suit">${s}</span></div>
-    <div class="card-center">${s}</div>
-    <div class="card-corner br"><span class="card-corner-val">${v}</span><span class="card-corner-suit">${s}</span></div>
-  </div>`;
+  const idx = getCardSpriteIndex(card);
+  const col = idx % 11;
+  const row = Math.floor(idx / 11);
+  // Background position as percentage for proper scaling
+  // For percentage-based positioning: x% = col/(cols-1)*100, y% = row/(rows-1)*100
+  const xPct = col / 10 * 100; // 10 = 11 cols - 1
+  const yPct = row / 4 * 100;  // 4 = 5 rows - 1
+  const title = cardFullName(card);
+  return `<div class="playing-card ${sizeClass}" style="background-position: ${xPct}% ${yPct}%" title="${title}"></div>`;
 }
 
 function cardFullName(card) {
