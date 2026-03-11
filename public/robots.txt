@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://literature.rohitroy.me/sitemap.xml

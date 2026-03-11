@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Literature — Card Game</title>
+<title>Literature — Free Online Card Game | Play with Friends</title>
+<meta name="description" content="Play Literature (Fish) card game online for free with friends. A classic 6-player team card game — create a room, invite friends, and start playing instantly.">
+<meta name="keywords" content="literature card game, literature card game online, fish card game, online card game, free card game, multiplayer card game, team card game, literature game">
+<meta name="author" content="Rohit Roy">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://literature.rohitroy.me/">
+<meta property="og:title" content="Literature — Free Online Card Game">
+<meta property="og:description" content="Play the classic Literature (Fish) card game online with friends. 6 players, 2 teams, real-time multiplayer.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://literature.rohitroy.me/">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="/socket.io/socket.io.js"></script>
 <style>
@@ -804,6 +813,14 @@ function showScreen(id) {
   document.getElementById('screen-lobby').style.display = id === 'lobby' ? 'flex' : 'none';
   document.getElementById('screen-game').style.display = id === 'game' ? 'block' : 'none';
   document.getElementById('last-call-btn').classList.toggle('visible', id === 'game');
+  const footer = document.getElementById('app-footer');
+  if (id === 'home') {
+    footer.style.position = ''; footer.style.bottom = ''; footer.style.left = '';
+    footer.style.justifyContent = 'center'; footer.style.width = '';
+  } else {
+    footer.style.position = 'fixed'; footer.style.bottom = '8px'; footer.style.left = '12px';
+    footer.style.justifyContent = 'flex-start'; footer.style.width = 'auto'; footer.style.padding = '0';
+  }
 }
 
 // ── Home ────────────────────────────────────────
@@ -1434,5 +1451,11 @@ if (new URLSearchParams(window.location.search).has('dev')) {
   };
 }
 </script>
+<footer id="app-footer" style="padding:24px 0 12px;font-size:0.7rem;color:var(--cream-dim);opacity:0.5;display:flex;align-items:center;justify-content:center;gap:8px;">
+  <span>&copy; 2026 Rohit Roy</span>
+  <a href="https://github.com/scarroy-02" target="_blank" rel="noopener" style="color:var(--cream-dim);line-height:0;" title="GitHub">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.694.825.576C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+  </a>
+</footer>
 </body>
 </html>
