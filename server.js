@@ -78,12 +78,15 @@ function createRoom(code) {
     claimedPits: {},    // pitName -> teamIndex (0 or 1)
     droppedOut: new Set(),
     lastCall: null,     // {callerId, targetId, card, success}
+    lastPitClaim: null, // {pitName, team, claimerName, valid}
     log: [],
     turnOrder: [],      // ordered player ids around the circle
+    continuePlaying: false, // when true, game continues past 5 pits
   };
 }
 
 function getRoom(code) { return rooms.get(code); }
+function teamName(t) { return t === 0 ? 'Blue' : 'Red'; }
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -122,6 +125,10 @@ function getNextOpponentToRight(room, playerId) {
 function checkGameOver(room) {
   const claimed = Object.keys(room.claimedPits).length;
   if (claimed === 9) return true;
+
+  // Check if a team has won 5 pits (majority)
+  const scores = getScores(room);
+  if (!room.continuePlaying && (scores[0] >= 5 || scores[1] >= 5)) return true;
 
   // Check if both teams still have active players
   const t0 = activeTeamPlayers(room, 0);
@@ -198,11 +205,11 @@ function autoClaimRemaining(room, teamIdx) {
     );
     if (allInTeam) {
       room.claimedPits[pitName] = teamIdx;
-      addLog(room, `Team ${teamIdx + 1} claims ${pitName}!`);
+      addLog(room, `Team ${teamName(teamIdx)} claims ${pitName}!`);
     } else {
       // Award to the other team
       room.claimedPits[pitName] = 1 - teamIdx;
-      addLog(room, `${pitName} awarded to Team ${2 - teamIdx}.`);
+      addLog(room, `${pitName} awarded to Team ${teamName(1 - teamIdx)}.`);
     }
   }
 }
@@ -214,6 +221,8 @@ function startGame(room) {
   room.claimedPits = {};
   room.droppedOut = new Set();
   room.lastCall = null;
+  room.lastPitClaim = null;
+  room.continuePlaying = false;
   room.log = [];
 
   // Seat arrangement: alternate teams
@@ -332,7 +341,8 @@ io.on('connection', (socket) => {
     if (callerHand.some(c => c.id === cardId)) {
       // Invalid call - caller has the card
       room.claimedPits[pitName] = target.team;
-      addLog(room, `INVALID CALL by ${caller.name}! They already have ${cardDisplayName(card)}. ${pitName} goes to Team ${target.team + 1}.`);
+      room.lastPitClaim = { pitName, team: target.team, claimerName: caller.name, valid: false };
+      addLog(room, `INVALID CALL by ${caller.name}! They already have ${cardDisplayName(card)}. ${pitName} goes to Team ${teamName(target.team)}.`);
       room.lastCall = { callerId: playerId, targetId: targetPlayerId, card, success: false, invalid: true };
       room.currentTurn = getNextOpponentToRight(room, playerId);
       removePitCardsFromHands(room, pitName);
@@ -347,7 +357,8 @@ io.on('connection', (socket) => {
     if (!callerHand.some(c => getPitName(c) === pitName)) {
       // Invalid call
       room.claimedPits[pitName] = target.team;
-      addLog(room, `INVALID CALL by ${caller.name}! They have no cards from ${pitName}. ${pitName} goes to Team ${target.team + 1}.`);
+      room.lastPitClaim = { pitName, team: target.team, claimerName: caller.name, valid: false };
+      addLog(room, `INVALID CALL by ${caller.name}! They have no cards from ${pitName}. ${pitName} goes to Team ${teamName(target.team)}.`);
       room.lastCall = { callerId: playerId, targetId: targetPlayerId, card, success: false, invalid: true };
       room.currentTurn = getNextOpponentToRight(room, playerId);
       removePitCardsFromHands(room, pitName);
@@ -416,7 +427,8 @@ io.on('connection', (socket) => {
 
     if (valid) {
       room.claimedPits[pitName] = claimer.team;
-      addLog(room, `${claimer.name} correctly claimed ${pitName} for Team ${claimer.team + 1}!`);
+      room.lastPitClaim = { pitName, team: claimer.team, claimerName: claimer.name, valid: true };
+      addLog(room, `${claimer.name} correctly claimed ${pitName} for Team ${teamName(claimer.team)}!`);
       removePitCardsFromHands(room, pitName);
       checkAllDropouts(room);
 
@@ -426,8 +438,10 @@ io.on('connection', (socket) => {
         handlePostClaim(room, playerId);
       }
     } else {
-      room.claimedPits[pitName] = 1 - claimer.team;
-      addLog(room, `${claimer.name} made an INVALID claim for ${pitName}. Awarded to Team ${2 - claimer.team}!`);
+      const awardedTeam = 1 - claimer.team;
+      room.claimedPits[pitName] = awardedTeam;
+      room.lastPitClaim = { pitName, team: awardedTeam, claimerName: claimer.name, valid: false };
+      addLog(room, `${claimer.name} made an INVALID claim for ${pitName}. Awarded to Team ${teamName(1 - claimer.team)}!`);
       removePitCardsFromHands(room, pitName);
       room.currentTurn = getNextOpponentToRight(room, playerId);
       checkAllDropouts(room);
@@ -508,6 +522,186 @@ io.on('connection', (socket) => {
     cb({ success: true, room: sanitizeRoom(room, pid) });
     broadcastGameState(room);
   });
+
+  socket.on('continue-game', (_, cb) => {
+    const room = getRoom(currentRoom);
+    if (!room) return cb({ success: false, error: 'Room not found.' });
+    if (room.players[0].id !== playerId) return cb({ success: false, error: 'Only host can continue.' });
+    if (room.state !== 'finished') return cb({ success: false, error: 'Game not finished.' });
+
+    room.continuePlaying = true;
+    room.state = 'playing';
+    // If all pits claimed, truly done
+    if (Object.keys(room.claimedPits).length === 9) {
+      return cb({ success: false, error: 'All pits already claimed.' });
+    }
+    cb({ success: true });
+    broadcastGameState(room);
+  });
+
+  socket.on('end-game', (_, cb) => {
+    const room = getRoom(currentRoom);
+    if (!room) return cb({ success: false, error: 'Room not found.' });
+    if (room.players[0].id !== playerId) return cb({ success: false, error: 'Only host can end the game.' });
+    if (room.state !== 'playing') return cb({ success: false, error: 'Game is not in progress.' });
+
+    addLog(room, 'Game ended early by the host.');
+    finishGame(room);
+    cb({ success: true });
+    broadcastGameState(room);
+  });
+
+  socket.on('new-game', (_, cb) => {
+    const room = getRoom(currentRoom);
+    if (!room) return cb({ success: false, error: 'Room not found.' });
+    if (room.players[0].id !== playerId) return cb({ success: false, error: 'Only host can start new game.' });
+
+    // Reset to lobby, keep players
+    room.state = 'lobby';
+    room.hands = {};
+    room.claimedPits = {};
+    room.droppedOut = new Set();
+    room.lastCall = null;
+    room.lastPitClaim = null;
+    room.log = [];
+    room.turnOrder = [];
+    room.continuePlaying = false;
+    // Remove bots
+    room.players = room.players.filter(p => !p.id.startsWith('bot_'));
+    cb({ success: true });
+    io.to(currentRoom).emit('room-update', sanitizeRoomForAll(room));
+    // Also send game-state so clients switch screens
+    for (const p of room.players) {
+      const sock = io.sockets.sockets.get(p.socketId);
+      if (sock) sock.emit('game-state', sanitizeRoom(room, p.id));
+    }
+  });
+
+  // ── Dev mode: fill room with bots and start ──────────────────────────
+  socket.on('dev-fill-bots', (_, cb) => {
+    const room = getRoom(currentRoom);
+    if (!room || room.state !== 'lobby') return cb({ success: false, error: 'Not in lobby.' });
+
+    const botNames = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'];
+    let botIdx = 0;
+    while (room.players.length < 6 && botIdx < botNames.length) {
+      const idx = room.players.length;
+      const team = idx % 2 === 0 ? 0 : 1;
+      const botId = `bot_${Date.now()}_${botIdx}`;
+      room.players.push({
+        id: botId, name: botNames[botIdx], socketId: null,
+        team, seatIndex: idx
+      });
+      room.hands[botId] = room.hands[botId] || [];
+      botIdx++;
+    }
+
+    // Balance teams to 3v3
+    const t0 = room.players.filter(p => p.team === 0);
+    const t1 = room.players.filter(p => p.team === 1);
+    let seat = 0;
+    for (let i = 0; i < Math.max(t0.length, t1.length); i++) {
+      if (t0[i]) { t0[i].seatIndex = seat++; }
+      if (t1[i]) { t1[i].seatIndex = seat++; }
+    }
+
+    startGame(room);
+    cb({ success: true });
+    broadcastGameState(room);
+  });
+
+  // ── Dev mode: play a bot turn (call random card) ────────────────────
+  socket.on('dev-bot-turn', (_, cb) => {
+    const room = getRoom(currentRoom);
+    if (!room || room.state !== 'playing') return cb({ success: false, error: 'Not playing.' });
+
+    const currentId = room.currentTurn;
+    const currentPlayer = getPlayerById(room, currentId);
+    if (!currentPlayer) return cb({ success: false });
+
+    // Check if current turn is the human player
+    const humanId = playerId;
+    if (currentId === humanId) return cb({ success: false, error: 'It is your turn!' });
+
+    const hand = room.hands[currentId] || [];
+    if (hand.length === 0) return cb({ success: false, error: 'Bot has no cards.' });
+
+    // Pick a random card from bot's hand to determine pit, then ask a random opponent for a card from that pit
+    const randomCard = hand[Math.floor(Math.random() * hand.length)];
+    const pitName = getPitName(randomCard);
+
+    // Find all cards in that pit that the bot doesn't have
+    const pitCards = getPitCards(pitName);
+    const handIds = new Set(hand.map(c => c.id));
+    const askable = pitCards.filter(c => !handIds.has(c.id));
+
+    if (askable.length === 0) {
+      // Bot should claim this pit - auto-assign
+      const teamIds = teamPlayers(room, currentPlayer.team).map(p => p.id);
+      const assignments = pitCards.map(c => {
+        for (const tid of teamIds) {
+          if ((room.hands[tid] || []).some(h => h.id === c.id)) {
+            return { cardId: c.id, playerId: tid };
+          }
+        }
+        return { cardId: c.id, playerId: currentId };
+      });
+
+      let valid = true;
+      for (const a of assignments) {
+        if (!teamIds.includes(a.playerId)) { valid = false; break; }
+        if (!(room.hands[a.playerId] || []).some(c => c.id === a.cardId)) { valid = false; break; }
+      }
+
+      if (valid) {
+        room.claimedPits[pitName] = currentPlayer.team;
+        addLog(room, `${currentPlayer.name} correctly claimed ${pitName} for Team ${teamName(currentPlayer.team)}!`);
+        removePitCardsFromHands(room, pitName);
+        checkAllDropouts(room);
+        if (checkGameOver(room)) {
+          finishGame(room);
+        } else {
+          handlePostClaim(room, currentId);
+        }
+      } else {
+        const next = getNextOpponentToRight(room, currentId);
+        if (next) room.currentTurn = next;
+      }
+
+      cb({ success: true });
+      broadcastGameState(room);
+      return;
+    }
+
+    const cardToAsk = askable[Math.floor(Math.random() * askable.length)];
+
+    // Find opponents
+    const opponents = room.players.filter(p =>
+      p.team !== currentPlayer.team && !room.droppedOut.has(p.id)
+    );
+    if (opponents.length === 0) return cb({ success: false });
+
+    const target = opponents[Math.floor(Math.random() * opponents.length)];
+    const targetHand = room.hands[target.id] || [];
+    const targetHasCard = targetHand.some(c => c.id === cardToAsk.id);
+
+    if (targetHasCard) {
+      room.hands[target.id] = targetHand.filter(c => c.id !== cardToAsk.id);
+      room.hands[currentId] = [...hand, cardToAsk];
+      addLog(room, `${currentPlayer.name} asked ${target.name} for ${cardDisplayName(cardToAsk)} — GOT IT!`);
+      room.lastCall = { callerId: currentId, targetId: target.id, card: cardToAsk, success: true };
+      checkPlayerShouldDropOut(room, target.id);
+    } else {
+      addLog(room, `${currentPlayer.name} asked ${target.name} for ${cardDisplayName(cardToAsk)} — NOPE!`);
+      room.lastCall = { callerId: currentId, targetId: target.id, card: cardToAsk, success: false };
+      room.currentTurn = target.id;
+    }
+
+    checkAllDropouts(room);
+    if (checkGameOver(room)) finishGame(room);
+    cb({ success: true });
+    broadcastGameState(room);
+  });
 });
 
 function removePitCardsFromHands(room, pitName) {
@@ -571,9 +765,11 @@ function sanitizeRoom(room, forPlayerId) {
       success: room.lastCall.success,
       invalid: room.lastCall.invalid || false,
     } : null,
+    lastPitClaim: room.lastPitClaim,
     log: room.log.slice(-20),
     scores: getScores(room),
     allPits: ALL_PIT_NAMES,
+    hostId: room.players[0]?.id || null,
   };
   return result;
 }

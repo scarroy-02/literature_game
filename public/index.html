@@ -54,7 +54,7 @@ body::before {
 .container {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -199,9 +199,22 @@ input.name-input {
 /* ═══════ GAME ═══════ */
 #screen-game { display: none; }
 
+.game-layout {
+  display: flex; gap: 20px; align-items: flex-start;
+}
+.game-left {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; align-items: center;
+}
+.game-right {
+  width: 300px; flex-shrink: 0;
+  position: sticky; top: 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
 .game-top-bar {
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 4px; padding: 0 8px;
+  margin-bottom: 12px; padding: 8px 8px 0;
 }
 .game-title-sm { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--gold); }
 .game-code-sm { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--cream-dim); margin-left: 8px; }
@@ -217,10 +230,9 @@ input.name-input {
 .turn-bar {
   text-align: center;
   padding: 8px 16px;
-  margin: 4px auto 8px;
+  margin-bottom: 8px;
   border-radius: 8px;
   font-size: 0.85rem;
-  max-width: 400px;
 }
 .turn-bar.your-turn {
   background: rgba(200,168,78,0.12);
@@ -236,15 +248,15 @@ input.name-input {
 /* ── The Table ──────────────────────────────────── */
 .table-wrapper {
   position: relative;
-  width: 100%; max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 820px;
   aspect-ratio: 16 / 10;
-  min-height: 420px;
+  min-height: 300px;
 }
 
 .table-felt {
   position: absolute;
-  top: 55px; left: 55px; right: 55px; bottom: 55px;
+  top: 50px; left: 30px; right: 30px; bottom: 50px;
   border-radius: 50%;
   background: radial-gradient(ellipse at 50% 45%, #1a7a45 0%, #145a32 40%, #0f4528 70%, #0b3420 100%);
   border: 8px solid var(--felt-rim);
@@ -259,31 +271,56 @@ input.name-input {
   background: repeating-conic-gradient(rgba(255,255,255,0.008) 0% 25%, transparent 0% 50%) 0 0 / 3px 3px;
   pointer-events: none;
 }
+.table-felt::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background:
+    linear-gradient(to right,
+      rgba(91,159,212,0.18) 0%,
+      rgba(91,159,212,0.08) 25%,
+      transparent 50%,
+      rgba(224,112,80,0.08) 75%,
+      rgba(224,112,80,0.18) 100%
+    );
+  pointer-events: none;
+  z-index: 1;
+}
 
 /* ── Pits on table ──────────────────────────────── */
-.table-pits {
+.table-zones {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  display: flex; flex-wrap: wrap; gap: 6px;
-  justify-content: center; max-width: 340px; z-index: 2;
+  display: flex; align-items: center; gap: 24px;
+  z-index: 2; justify-content: center;
+}
+.team-zone {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-width: 60px;
+}
+.zone-label {
+  font-family: 'DM Serif Display', serif; font-size: 0.7rem;
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px;
+}
+.zone-blue .zone-label { color: var(--team-blue); }
+.zone-red .zone-label { color: var(--team-red); }
+.zone-cards {
+  display: grid;
+  grid-template-rows: repeat(3, auto);
+  grid-auto-flow: column;
+  gap: 3px;
+  justify-content: center;
+}
+.zone-cards .playing-card { opacity: 0.92; }
+.unclaimed-pits {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  justify-content: center; max-width: 160px;
 }
 .table-pit {
-  padding: 4px 10px; border-radius: 5px;
-  font-size: 0.65rem; font-weight: 600; letter-spacing: 0.03em;
+  padding: 3px 8px; border-radius: 4px;
+  font-size: 0.55rem; font-weight: 600; letter-spacing: 0.03em;
   font-family: 'IBM Plex Sans', sans-serif; text-transform: uppercase;
-  transition: all 0.3s;
-}
-.table-pit.unclaimed {
-  background: rgba(0,0,0,0.25); color: rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.25); color: rgba(255,255,255,0.25);
   border: 1px solid rgba(255,255,255,0.06);
-}
-.table-pit.team-0 {
-  background: rgba(91,159,212,0.25); color: var(--team-blue-strong);
-  border: 1px solid rgba(91,159,212,0.35); box-shadow: 0 0 8px rgba(91,159,212,0.15);
-}
-.table-pit.team-1 {
-  background: rgba(224,112,80,0.25); color: var(--team-red-strong);
-  border: 1px solid rgba(224,112,80,0.35); box-shadow: 0 0 8px rgba(224,112,80,0.15);
+  transition: all 0.3s;
 }
 
 /* ── Player seats ───────────────────────────────── */
@@ -295,7 +332,7 @@ input.name-input {
 .seat-pos-0 { bottom: -20px; left: 50%; transform: translateX(-50%); }
 .seat-pos-1 { bottom: 22%; left: 0%; }
 .seat-pos-2 { top: 4%; left: 6%; }
-.seat-pos-3 { top: -24px; left: 50%; transform: translateX(-50%); }
+.seat-pos-3 { top: -10px; left: 50%; transform: translateX(-50%); }
 .seat-pos-4 { top: 4%; right: 6%; }
 .seat-pos-5 { bottom: 22%; right: 0%; }
 
@@ -331,7 +368,7 @@ input.name-input {
 
 .seat-name {
   font-size: 0.72rem; font-weight: 500; color: var(--cream);
-  white-space: nowrap; max-width: 80px; overflow: hidden;
+  white-space: nowrap; max-width: 90px; overflow: hidden;
   text-overflow: ellipsis; text-align: center;
 }
 .seat-name.you { color: var(--gold); font-weight: 600; }
@@ -381,10 +418,22 @@ input.name-input {
 }
 
 /* Card sizes */
+.card-xs {
+  width: 28px; height: 39px;
+  /* sprite scale: 28/400 = 0.07 → bg-size = 4400*0.07 x 2800*0.07 = 308 x 196 */
+  background-size: 308px 196px;
+}
+
 .card-sm {
   width: 38px; height: 53px;
   /* sprite scale: 38/400 = 0.095 → bg-size = 4400*0.095 x 2800*0.095 = 418 x 266 */
   background-size: 418px 266px;
+}
+
+.card-pit {
+  width: 50px; height: 70px;
+  /* sprite scale: 50/400 = 0.125 → bg-size = 4400*0.125 x 2800*0.125 = 550 x 350 */
+  background-size: 550px 350px;
 }
 
 .card-md {
@@ -395,9 +444,9 @@ input.name-input {
 
 /* ── Card Fan ───────────────────────────────────── */
 .card-fan-area {
-  position: relative; width: 100%; max-width: 900px;
-  margin: 12px auto 0; /* pushed down from table */
-  min-height: 100px;
+  position: relative; width: 100%;
+  margin-top: 16px;
+  min-height: 60px;
   display: flex; justify-content: center; align-items: flex-start;
   z-index: 10;
 }
@@ -487,9 +536,6 @@ input.name-input {
 }
 
 /* ── Actions panel ──────────────────────────────── */
-.actions-bar {
-  max-width: 900px; margin: 16px auto 0;
-}
 .bottom-panel {
   background: rgba(13,31,23,0.7); border: 1px solid rgba(200,168,78,0.1);
   border-radius: 10px; padding: 14px;
@@ -563,10 +609,14 @@ input.name-input {
 }
 
 /* ── Responsive ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .game-layout { flex-direction: column; }
+  .game-right { width: 100%; }
+}
 @media (max-width: 600px) {
   h1 { font-size: 2rem; }
-  .table-wrapper { min-height: 340px; }
-  .table-felt { top: 40px; left: 25px; right: 25px; bottom: 40px; }
+  .table-wrapper { min-height: 300px; max-width: 100%; }
+  .table-felt { top: 40px; left: 15px; right: 15px; bottom: 40px; }
   .avatar { width: 40px; height: 40px; font-size: 1rem; }
   .seat-name { font-size: 0.6rem; max-width: 56px; }
   .card-md { width: 46px; height: 64px; background-size: 506px 322px; }
@@ -609,12 +659,12 @@ input.name-input {
   <div class="copy-hint">click code to copy · share with friends</div>
   <div class="teams-container">
     <div class="team-panel panel t0">
-      <div class="team-label">Team 1</div>
+      <div class="team-label">Team Blue</div>
       <div id="team0-players"></div>
     </div>
     <div class="vs-divider">vs</div>
     <div class="team-panel panel t1">
-      <div class="team-label">Team 2</div>
+      <div class="team-label">Team Red</div>
       <div id="team1-players"></div>
     </div>
   </div>
@@ -630,28 +680,40 @@ input.name-input {
     <div>
       <span class="game-title-sm">Literature</span>
       <span class="game-code-sm" id="game-room-code"></span>
+      <button class="btn btn-sm hidden" id="btn-end-game" style="margin-left:12px;background:#c0392b;color:#fff;padding:2px 10px;font-size:0.7rem;">End Game</button>
     </div>
     <div class="scoreboard">
-      <div class="score-item score-t0">T1: <span id="score-0">0</span></div>
-      <div class="score-item score-t1">T2: <span id="score-1">0</span></div>
+      <div class="score-item score-t0">Blue: <span id="score-0">0</span></div>
+      <div class="score-item score-t1">Red: <span id="score-1">0</span></div>
     </div>
   </div>
-  <div id="turn-bar" class="turn-bar waiting"></div>
-
-  <div class="table-wrapper" id="table-wrapper">
-    <div class="table-felt">
-      <div class="table-pits" id="table-pits"></div>
+  <div class="game-layout">
+    <div class="game-left">
+      <div class="table-wrapper" id="table-wrapper">
+        <div class="table-felt">
+          <div class="table-zones">
+            <div class="team-zone zone-blue" id="zone-blue">
+              <div class="zone-label">Blue</div>
+              <div class="zone-cards" id="zone-blue-cards"></div>
+            </div>
+            <div class="unclaimed-pits" id="unclaimed-pits"></div>
+            <div class="team-zone zone-red" id="zone-red">
+              <div class="zone-label">Red</div>
+              <div class="zone-cards" id="zone-red-cards"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-fan-area">
+        <div class="card-fan" id="card-fan"></div>
+      </div>
     </div>
-  </div>
-
-  <div class="card-fan-area">
-    <div class="card-fan" id="card-fan"></div>
-  </div>
-
-  <div class="actions-bar">
-    <div class="bottom-panel" id="actions-panel">
-      <h3>Actions</h3>
-      <div id="actions-content"></div>
+    <div class="game-right">
+      <div id="turn-bar" class="turn-bar waiting"></div>
+      <div class="bottom-panel" id="actions-panel">
+        <h3>Actions</h3>
+        <div id="actions-content"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -784,6 +846,10 @@ document.getElementById('lobby-code').onclick = () => {
 document.getElementById('btn-start').onclick = () => {
   socket.emit('start-game', null, (res) => { if (!res.success) alert(res.error); });
 };
+document.getElementById('btn-end-game').onclick = () => {
+  if (!confirm('Are you sure you want to end the game? The current scores will be final.')) return;
+  socket.emit('end-game', null, (res) => { if (!res.success) alert(res.error); });
+};
 
 function updateLobby(data) {
   document.getElementById('lobby-code').textContent = data.code || roomCode;
@@ -827,7 +893,8 @@ function updateLobby(data) {
 socket.on('room-update', (data) => { if (data.state === 'lobby') updateLobby(data); });
 socket.on('game-state', (state) => {
   gameState = state;
-  if (state.state === 'playing' || state.state === 'finished') { showScreen('game'); renderGame(); }
+  if (state.state === 'lobby') { showScreen('lobby'); updateLobby(state); }
+  else if (state.state === 'playing' || state.state === 'finished') { showScreen('game'); renderGame(); }
 });
 
 // ── Game Rendering ──────────────────────────────
@@ -836,6 +903,8 @@ function renderGame() {
   document.getElementById('game-room-code').textContent = gs.code;
   document.getElementById('score-0').textContent = gs.scores[0];
   document.getElementById('score-1').textContent = gs.scores[1];
+  const endBtn = document.getElementById('btn-end-game');
+  endBtn.classList.toggle('hidden', !(gs.hostId === myPlayerId && gs.state === 'playing'));
   renderTurnBar();
   renderPlayers();
   renderTablePits();
@@ -844,6 +913,7 @@ function renderGame() {
   renderGameOver();
   renderLastCallBtn();
   showToast();
+  showPitClaimToast();
 }
 
 function getSeatingOrder() {
@@ -879,7 +949,7 @@ function renderPlayers() {
 
     seat.innerHTML = `
       <div class="${avatarCls}" data-pid="${p.id}">${p.name.charAt(0).toUpperCase()}</div>
-      <div class="seat-name ${p.isYou ? 'you' : ''}">${p.isYou ? '★ You' : p.name}</div>
+      <div class="seat-name ${p.isYou ? 'you' : ''}">${p.isYou ? '★ ' + p.name : p.name}</div>
       <div class="seat-cards-count">${p.cardCount} cards</div>
     `;
     wrapper.appendChild(seat);
@@ -897,7 +967,8 @@ function renderPlayers() {
 function renderTurnBar() {
   const gs = gameState;
   const el = document.getElementById('turn-bar');
-  if (gs.state !== 'playing') { el.textContent = ''; el.className = 'turn-bar waiting'; return; }
+  if (gs.state !== 'playing') { el.textContent = ''; el.className = 'turn-bar waiting'; el.style.display = 'none'; return; }
+  el.style.display = '';
   if (gs.currentTurn === myPlayerId) {
     el.innerHTML = '✦ <strong>Your turn</strong> — click an opponent to call a card';
     el.className = 'turn-bar your-turn';
@@ -970,16 +1041,43 @@ document.addEventListener('click', (e) => {
 });
 
 // ── Table Pits ──────────────────────────────────
+function getPitRepCard(pitName) {
+  // Representative card for each pit
+  if (pitName === 'Eights & Jokers') return { suit: 'Joker', value: 0, id: 'Joker-Red' };
+  const parts = pitName.split(' ');
+  const level = parts[0]; // 'Low' or 'High'
+  const suit = parts[1];
+  if (level === 'Low') return { suit, value: 4, id: `4-${suit}` };
+  return { suit, value: 13, id: `13-${suit}` }; // King
+}
+
 function renderTablePits() {
   const gs = gameState;
-  document.getElementById('table-pits').innerHTML = gs.allPits.map(pit => {
+  const blueCards = [];
+  const redCards = [];
+  const unclaimed = [];
+
+  for (const pit of gs.allPits) {
     const claimed = gs.claimedPits[pit];
-    let cls = 'unclaimed';
-    if (claimed === 0) cls = 'team-0';
-    else if (claimed === 1) cls = 'team-1';
-    const short = pit.replace('Eights & Jokers', '8s + Jkr').replace('Low ', 'L ').replace('High ', 'H ');
-    return `<div class="table-pit ${cls}">${short}</div>`;
-  }).join('');
+    const short = pit.replace('Eights & Jokers', '8s+Jkr').replace('Low ', 'L ').replace('High ', 'H ');
+    if (claimed === 0) {
+      blueCards.push({ pit, short, card: getPitRepCard(pit) });
+    } else if (claimed === 1) {
+      redCards.push({ pit, short, card: getPitRepCard(pit) });
+    } else {
+      unclaimed.push(short);
+    }
+  }
+
+  document.getElementById('zone-blue-cards').innerHTML = blueCards.length > 0
+    ? blueCards.map(p => cardHTML(p.card, 'card-pit')).join('')
+    : '<span style="font-size:0.6rem;color:rgba(91,159,212,0.3);">—</span>';
+
+  document.getElementById('zone-red-cards').innerHTML = redCards.length > 0
+    ? redCards.map(p => cardHTML(p.card, 'card-pit')).join('')
+    : '<span style="font-size:0.6rem;color:rgba(224,112,80,0.3);">—</span>';
+
+  document.getElementById('unclaimed-pits').innerHTML = '';
 }
 
 // ── Card Fan ────────────────────────────────────
@@ -1075,6 +1173,32 @@ function showToast() {
   toast.textContent = msg;
   document.body.appendChild(toast);
   toastTimeout = setTimeout(() => toast.remove(), 3500);
+}
+
+// ── Pit Claim Toast ─────────────────────────────
+let pitClaimKey = null;
+function showPitClaimToast() {
+  const pc = gameState.lastPitClaim;
+  if (!pc) return;
+  const key = `${pc.pitName}-${pc.team}-${pc.claimerName}-${pc.valid}`;
+  if (key === pitClaimKey) return;
+  pitClaimKey = key;
+
+  const teamName = pc.team === 0 ? 'Team Blue' : 'Team Red';
+  let msg, cls;
+  if (pc.valid) {
+    msg = `${pc.claimerName} claimed ${pc.pitName} for ${teamName}!`;
+    cls = 'success';
+  } else {
+    msg = `Invalid claim! ${pc.pitName} awarded to ${teamName}`;
+    cls = 'fail';
+  }
+  const toast = document.createElement('div');
+  toast.className = `toast ${cls}`;
+  toast.style.top = '60px';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
 
 // ── Actions ─────────────────────────────────────
@@ -1192,8 +1316,29 @@ function doPass() {
 function renderGameOver() {
   const gs = gameState; const el = document.getElementById('game-over-area');
   if (gs.state !== 'finished') { el.innerHTML = ''; return; }
-  const w = gs.scores[0] > gs.scores[1] ? 'Team 1 Wins!' : gs.scores[1] > gs.scores[0] ? 'Team 2 Wins!' : "It's a Tie!";
-  el.innerHTML = `<div class="game-over-banner"><h2>${w}</h2><div class="final-score">${gs.scores[0]} — ${gs.scores[1]}</div></div>`;
+  const w = gs.scores[0] > gs.scores[1] ? 'Team Blue Wins!' : gs.scores[1] > gs.scores[0] ? 'Team Red Wins!' : "It's a Tie!";
+  const allClaimed = Object.keys(gs.claimedPits).length === 9;
+  const isHost = gs.hostId === myPlayerId;
+
+  let buttons = '';
+  if (isHost) {
+    if (!allClaimed) {
+      buttons += `<button class="btn btn-outline btn-sm" id="btn-continue-game" style="margin-top:12px;">Continue Playing</button> `;
+    }
+    buttons += `<button class="btn btn-gold btn-sm" id="btn-new-game" style="margin-top:12px;">New Game</button>`;
+  }
+
+  el.innerHTML = `<div class="game-over-banner"><h2>${w}</h2><div class="final-score">${gs.scores[0]} — ${gs.scores[1]}</div>${buttons}</div>`;
+
+  document.getElementById('btn-continue-game')?.addEventListener('click', () => {
+    socket.emit('continue-game', null, (res) => { if (!res.success) alert(res.error); });
+  });
+  document.getElementById('btn-new-game')?.addEventListener('click', () => {
+    socket.emit('new-game', null, (res) => {
+      if (res.success) { showScreen('lobby'); }
+      else alert(res.error);
+    });
+  });
 }
 
 // ── Card Helpers ────────────────────────────────
@@ -1241,6 +1386,53 @@ window.addEventListener('load', () => {
 
 document.getElementById('player-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('btn-create').click(); });
 document.getElementById('room-code-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('btn-join').click(); });
+
+// ── Dev Mode ──────────────────────────────────
+if (new URLSearchParams(window.location.search).has('dev')) {
+  const devBar = document.createElement('div');
+  devBar.id = 'dev-bar';
+  devBar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:999;background:rgba(0,0,0,0.9);padding:8px 16px;display:flex;gap:8px;align-items:center;font-size:0.75rem;color:#aaa;border-top:1px solid #333;';
+  devBar.innerHTML = `
+    <span style="color:#e8c95a;font-weight:600;">DEV</span>
+    <button id="dev-fill" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:0.7rem;">Fill Bots + Start</button>
+    <button id="dev-bot" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:0.7rem;">Bot Turn</button>
+    <button id="dev-bot-auto" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:0.7rem;">Auto-play Bots</button>
+    <span id="dev-status" style="margin-left:8px;"></span>
+  `;
+  document.body.appendChild(devBar);
+
+  document.getElementById('dev-fill').onclick = () => {
+    socket.emit('dev-fill-bots', null, (res) => {
+      document.getElementById('dev-status').textContent = res.success ? 'Game started with bots!' : res.error;
+    });
+  };
+
+  document.getElementById('dev-bot').onclick = () => {
+    socket.emit('dev-bot-turn', null, (res) => {
+      document.getElementById('dev-status').textContent = res.success ? 'Bot played.' : (res.error || 'Error');
+    });
+  };
+
+  let autoInterval = null;
+  document.getElementById('dev-bot-auto').onclick = () => {
+    if (autoInterval) {
+      clearInterval(autoInterval);
+      autoInterval = null;
+      document.getElementById('dev-bot-auto').textContent = 'Auto-play Bots';
+      document.getElementById('dev-status').textContent = 'Auto stopped.';
+    } else {
+      document.getElementById('dev-bot-auto').textContent = 'Stop Auto';
+      autoInterval = setInterval(() => {
+        if (!gameState || gameState.state !== 'playing') { clearInterval(autoInterval); autoInterval = null; return; }
+        if (gameState.currentTurn === myPlayerId) return; // skip human turn
+        socket.emit('dev-bot-turn', null, (res) => {
+          if (!res.success && res.error === 'It is your turn!') return;
+          if (!res.success) { clearInterval(autoInterval); autoInterval = null; }
+        });
+      }, 800);
+    }
+  };
+}
 </script>
 </body>
 </html>
