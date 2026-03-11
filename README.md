@@ -1,4 +1,4 @@
-# Literature — Online Card Game
+# Literature (Card Game) Online
 
 A web-based multiplayer version of the **Literature** card game (also known as *Fish*) for 6 players in 2 teams of 3.
 
@@ -16,7 +16,7 @@ Then open **http://localhost:3000** in your browser. -->
 
 ## Playing with Friends Online
 
-To play this directly: https://literature-game.onrender.com/
+To play this directly: https://literature.rohitroy.me/
 
 <!-- ### Option 1: ngrok (easiest)
 ```bash
