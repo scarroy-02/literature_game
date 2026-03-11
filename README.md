@@ -2,7 +2,7 @@
 
 A web-based multiplayer version of the **Literature** card game (also known as *Fish*) for 6 players in 2 teams of 3.
 
-## Quick Start
+<!-- ## Quick Start
 
 ```bash
 # Install dependencies
@@ -12,7 +12,7 @@ npm install
 node server.js
 ```
 
-Then open **http://localhost:3000** in your browser.
+Then open **http://localhost:3000** in your browser. -->
 
 ## Playing with Friends Online
 
