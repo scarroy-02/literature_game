@@ -82,6 +82,7 @@ function createRoom(code) {
     log: [],
     turnOrder: [],      // ordered player ids around the circle
     continuePlaying: false, // when true, game continues past 5 pits
+    pendingTurnChoice: null, // playerId who must choose a teammate for the turn
   };
 }
 
@@ -108,14 +109,14 @@ function activeTeamPlayers(room, teamIdx) {
   return teamPlayers(room, teamIdx).filter(p => !room.droppedOut.has(p.id));
 }
 
-function getNextOpponentToRight(room, playerId) {
+function getNextOpponentToLeft(room, playerId) {
   const player = getPlayerById(room, playerId);
   const idx = room.turnOrder.indexOf(playerId);
   for (let i = 1; i < room.turnOrder.length; i++) {
     const nextIdx = (idx + i) % room.turnOrder.length;
     const nextId = room.turnOrder[nextIdx];
     const nextPlayer = getPlayerById(room, nextId);
-    if (nextPlayer.team !== player.team && !room.droppedOut.has(nextId)) {
+    if (nextPlayer.team !== player.team && !room.droppedOut.has(nextId) && (room.hands[nextId] || []).length > 0) {
       return nextId;
     }
   }
@@ -163,15 +164,16 @@ function handlePostClaim(room, playerId) {
   const hand = room.hands[playerId] || [];
   if (hand.length === 0) {
     const player = getPlayerById(room, playerId);
-    const teammates = activeTeamPlayers(room, player.team).filter(p => p.id !== playerId);
+    const teammates = activeTeamPlayers(room, player.team)
+      .filter(p => p.id !== playerId && (room.hands[p.id] || []).length > 0);
     handleDropOut(room, playerId);
     if (teammates.length > 0) {
-      // Player can pick a teammate - for simplicity auto-pass to first active teammate
-      room.currentTurn = teammates[0].id;
-      addLog(room, `Turn passes to ${teammates[0].name}.`);
+      // Let the player choose who gets the turn
+      room.pendingTurnChoice = playerId;
+      room.currentTurn = playerId; // keep turn on them until they choose
     } else {
-      // No teammates left, pass to opponent
-      const opp = getNextOpponentToRight(room, playerId);
+      // No teammates with cards left, pass to opponent
+      const opp = getNextOpponentToLeft(room, playerId);
       if (opp) {
         room.currentTurn = opp;
         addLog(room, `Turn passes to ${getPlayerById(room, opp).name}.`);
@@ -223,6 +225,7 @@ function startGame(room) {
   room.lastCall = null;
   room.lastPitClaim = null;
   room.continuePlaying = false;
+  room.pendingTurnChoice = null;
   room.log = [];
 
   // Seat arrangement: alternate teams
@@ -344,7 +347,7 @@ io.on('connection', (socket) => {
       room.lastPitClaim = { pitName, team: target.team, claimerName: caller.name, valid: false };
       addLog(room, `INVALID CALL by ${caller.name}! They already have ${cardDisplayName(card)}. ${pitName} goes to Team ${teamName(target.team)}.`);
       room.lastCall = { callerId: playerId, targetId: targetPlayerId, card, success: false, invalid: true };
-      room.currentTurn = getNextOpponentToRight(room, playerId);
+      room.currentTurn = getNextOpponentToLeft(room, playerId);
       removePitCardsFromHands(room, pitName);
       checkAllDropouts(room);
       if (checkGameOver(room)) finishGame(room);
@@ -360,7 +363,7 @@ io.on('connection', (socket) => {
       room.lastPitClaim = { pitName, team: target.team, claimerName: caller.name, valid: false };
       addLog(room, `INVALID CALL by ${caller.name}! They have no cards from ${pitName}. ${pitName} goes to Team ${teamName(target.team)}.`);
       room.lastCall = { callerId: playerId, targetId: targetPlayerId, card, success: false, invalid: true };
-      room.currentTurn = getNextOpponentToRight(room, playerId);
+      room.currentTurn = getNextOpponentToLeft(room, playerId);
       removePitCardsFromHands(room, pitName);
       checkAllDropouts(room);
       if (checkGameOver(room)) finishGame(room);
@@ -443,7 +446,7 @@ io.on('connection', (socket) => {
       room.lastPitClaim = { pitName, team: awardedTeam, claimerName: claimer.name, valid: false };
       addLog(room, `${claimer.name} made an INVALID claim for ${pitName}. Awarded to Team ${teamName(1 - claimer.team)}!`);
       removePitCardsFromHands(room, pitName);
-      room.currentTurn = getNextOpponentToRight(room, playerId);
+      room.currentTurn = getNextOpponentToLeft(room, playerId);
       checkAllDropouts(room);
       if (checkGameOver(room)) finishGame(room);
     }
@@ -475,6 +478,25 @@ io.on('connection', (socket) => {
 
     checkAllDropouts(room);
     if (checkGameOver(room)) finishGame(room);
+    cb({ success: true });
+    broadcastGameState(room);
+  });
+
+  socket.on('choose-turn', ({ targetTeammateId }, cb) => {
+    const room = getRoom(currentRoom);
+    if (!room || room.state !== 'playing') return cb({ success: false, error: 'Game not in progress.' });
+    if (room.pendingTurnChoice !== playerId) return cb({ success: false, error: 'Not your choice to make.' });
+
+    const player = getPlayerById(room, playerId);
+    const target = getPlayerById(room, targetTeammateId);
+    if (!target || target.team !== player.team) return cb({ success: false, error: 'Must choose a teammate.' });
+    if (room.droppedOut.has(targetTeammateId) || (room.hands[targetTeammateId] || []).length === 0) {
+      return cb({ success: false, error: 'That teammate has no cards.' });
+    }
+
+    room.pendingTurnChoice = null;
+    room.currentTurn = targetTeammateId;
+    addLog(room, `${player.name} chose ${target.name} to take the turn.`);
     cb({ success: true });
     broadcastGameState(room);
   });
@@ -566,6 +588,7 @@ io.on('connection', (socket) => {
     room.log = [];
     room.turnOrder = [];
     room.continuePlaying = false;
+    room.pendingTurnChoice = null;
     // Remove bots
     room.players = room.players.filter(p => !p.id.startsWith('bot_'));
     cb({ success: true });
@@ -662,9 +685,20 @@ io.on('connection', (socket) => {
           finishGame(room);
         } else {
           handlePostClaim(room, currentId);
+          // Auto-resolve if bot needs to choose a teammate
+          if (room.pendingTurnChoice === currentId) {
+            const botPlayer = getPlayerById(room, currentId);
+            const teammates = activeTeamPlayers(room, botPlayer.team)
+              .filter(p => p.id !== currentId && (room.hands[p.id] || []).length > 0);
+            if (teammates.length > 0) {
+              room.pendingTurnChoice = null;
+              room.currentTurn = teammates[0].id;
+              addLog(room, `${botPlayer.name} chose ${teammates[0].name} to take the turn.`);
+            }
+          }
         }
       } else {
-        const next = getNextOpponentToRight(room, currentId);
+        const next = getNextOpponentToLeft(room, currentId);
         if (next) room.currentTurn = next;
       }
 
@@ -766,6 +800,7 @@ function sanitizeRoom(room, forPlayerId) {
       invalid: room.lastCall.invalid || false,
     } : null,
     lastPitClaim: room.lastPitClaim,
+    pendingTurnChoice: room.pendingTurnChoice,
     log: room.log.slice(-20),
     scores: getScores(room),
     allPits: ALL_PIT_NAMES,

@@ -986,7 +986,14 @@ function renderTurnBar() {
   const el = document.getElementById('turn-bar');
   if (gs.state !== 'playing') { el.textContent = ''; el.className = 'turn-bar waiting'; el.style.display = 'none'; return; }
   el.style.display = '';
-  if (gs.currentTurn === myPlayerId) {
+  if (gs.pendingTurnChoice === myPlayerId) {
+    el.innerHTML = 'Choose a teammate to give the turn to';
+    el.className = 'turn-bar your-turn';
+  } else if (gs.pendingTurnChoice) {
+    const chooser = gs.players.find(p => p.id === gs.pendingTurnChoice);
+    el.textContent = `${chooser ? chooser.name : '…'} is choosing who gets the turn`;
+    el.className = 'turn-bar waiting';
+  } else if (gs.currentTurn === myPlayerId) {
     el.innerHTML = '✦ <strong>Your turn</strong> — click an opponent to call a card';
     el.className = 'turn-bar your-turn';
   } else {
@@ -1228,6 +1235,25 @@ function renderActions() {
   if (gs.state === 'finished' || me.droppedOut) {
     el.innerHTML = '<span style="color:var(--cream-dim);font-size:0.8rem;">—</span>'; return;
   }
+
+  // Pending turn choice: player must pick a teammate to give the turn to
+  if (gs.pendingTurnChoice === myPlayerId) {
+    const teammates = gs.players.filter(p => p.team === me.team && !p.isYou && !p.droppedOut && p.cardCount > 0);
+    el.innerHTML = `<div style="font-size:0.85rem;color:var(--gold-bright);margin-bottom:8px;">Choose who gets the turn:</div>
+      <div class="pass-row">
+        <select id="select-turn-target">
+          ${teammates.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+        </select>
+        <button class="btn btn-gold btn-sm" id="btn-choose-turn">Give Turn</button>
+      </div>`;
+    document.getElementById('btn-choose-turn')?.addEventListener('click', () => {
+      const targetId = document.getElementById('select-turn-target')?.value;
+      if (!targetId) return;
+      socket.emit('choose-turn', { targetTeammateId: targetId }, (res) => { if (!res.success) alert(res.error); });
+    });
+    return;
+  }
+
   if (!isMyTurn) {
     el.innerHTML = '<span style="color:var(--cream-dim);font-size:0.8rem;">Waiting for your turn…</span>'; return;
   }
