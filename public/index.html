@@ -392,7 +392,7 @@ input.name-input {
   background: rgba(10,15,13,0.96);
   border: 1px solid rgba(200,168,78,0.25);
   border-radius: 10px; padding: 8px;
-  min-width: 240px; max-height: 380px;
+  min-width: 170px; max-height: 380px;
   overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   backdrop-filter: blur(8px);
@@ -407,12 +407,16 @@ input.name-input {
   border-bottom: 1px solid rgba(255,255,255,0.06);
   margin-bottom: 4px;
 }
+.call-pit-group { padding: 4px 6px; }
+.call-pit-group + .call-pit-group { border-top: 1px solid rgba(255,255,255,0.06); }
+.call-pit-label { font-size: 0.65rem; color: var(--cream-dim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.call-pit-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .call-card-option {
-  display: flex; align-items: center; gap: 10px;
-  padding: 5px 6px; border-radius: 6px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 4px; border-radius: 6px; cursor: pointer;
   transition: background 0.15s;
 }
-.call-card-option:hover { background: rgba(200,168,78,0.12); }
+.call-card-option:hover { background: rgba(200,168,78,0.15); }
 
 /* ── Playing Card (sprite-based) ─────────────────── */
 /* Sprite: 4400x2800, 11 cols x 5 rows, each card 400x560 at 4x */
@@ -533,8 +537,9 @@ input.name-input {
 /* ── Toast ──────────────────────────────────────── */
 .toast {
   position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  padding: 10px 24px; border-radius: 10px; font-size: 0.85rem;
+  padding: 14px 32px; border-radius: 12px; font-size: 1.1rem; font-weight: 600;
   z-index: 100; animation: toastIn 0.3s ease;
+  letter-spacing: 0.02em;
   pointer-events: none; text-align: center; max-width: 90%;
 }
 .toast.success { background: rgba(30,100,60,0.92); color: #7dda9a; border: 1px solid rgba(39,174,96,0.3); }
@@ -906,6 +911,18 @@ function updateLobby(data) {
   document.getElementById('btn-start').classList.toggle('hidden', !(isHost && count === 6 && balanced));
 }
 
+// ── Sounds ──────────────────────────────────────
+const sounds = {
+  askPass: new Audio('/sounds/ask_card_pass.mp3'),
+  askFail: new Audio('/sounds/ask_card_fail.mp3'),
+  claim: new Audio('/sounds/claim_pit.mp3'),
+  burn: new Audio('/sounds/burn_pit.mp3'),
+  win: new Audio('/sounds/win.mp3'),
+  lose: new Audio('/sounds/lose.mp3'),
+};
+Object.values(sounds).forEach(s => { s.preload = 'auto'; s.volume = 0.5; });
+function playSound(s) { s.currentTime = 0; s.play().catch(() => {}); }
+
 // ── Socket ──────────────────────────────────────
 socket.on('room-update', (data) => { if (data.state === 'lobby') updateLobby(data); });
 socket.on('game-state', (state) => {
@@ -931,6 +948,15 @@ function renderGame() {
   renderLastCallBtn();
   showToast();
   showPitClaimToast();
+  // Dev: populate pit select
+  const devPitSel = document.getElementById('dev-pit-select');
+  if (devPitSel && gs.state === 'playing') {
+    const claimed = new Set(Object.keys(gs.claimedPits || {}));
+    const allPits = ['L SPADES','H SPADES','L HEARTS','H HEARTS','L CLUBS','H CLUBS','L DIAMONDS','H DIAMONDS','8s & JOKERS'];
+    const available = allPits.filter(p => !claimed.has(p));
+    const cur = devPitSel.value;
+    devPitSel.innerHTML = '<option value="">Pick pit…</option>' + available.map(p => `<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+  }
 }
 
 function getSeatingOrder() {
@@ -1020,18 +1046,30 @@ function openCallDropdown(targetPlayerId, avatarEl) {
   });
   if (askable.length === 0) { closeCallDropdown(); return; }
 
+  // Group askable cards by pit
+  const byPit = {};
+  for (const c of askable) {
+    const pit = getPitNameClient(c);
+    if (!byPit[pit]) byPit[pit] = [];
+    byPit[pit].push(c);
+  }
+
   dd.innerHTML = `
     <div class="call-dropdown-header">Ask <strong>${target.name}</strong> for:</div>
-    ${askable.map(c => {
-      return `<div class="call-card-option" data-card="${c.id}">
-        ${cardHTML(c, 'card-sm')}
-        <span style="font-size:0.82rem;color:var(--cream)">${cardFullName(c)}</span>
-      </div>`;
-    }).join('')}
+    ${Object.entries(byPit).map(([pit, cards]) => `
+      <div class="call-pit-group">
+        <div class="call-pit-label">${pit}</div>
+        <div class="call-pit-cards">
+          ${cards.map(c => `<div class="call-card-option" data-card="${c.id}" title="${cardFullName(c)}">
+            ${cardHTML(c, 'card-sm')}
+          </div>`).join('')}
+        </div>
+      </div>
+    `).join('')}
   `;
 
   const rect = avatarEl.getBoundingClientRect();
-  const ddWidth = 250;
+  const ddWidth = 180;
   const centerX = rect.left + rect.width / 2;
   const vw = window.innerWidth;
   let left = centerX > vw / 2 ? rect.left - ddWidth - 10 : rect.right + 10;
@@ -1185,12 +1223,15 @@ function showToast() {
   if (lc.invalid) {
     msg = `⚠ ${lc.callerName} — invalid call for ${lc.cardDisplay}!`;
     cls = 'fail';
+    playSound(sounds.askFail);
   } else if (lc.success) {
     msg = `${lc.callerName} → ${lc.targetName}: ${lc.cardDisplay} ✓`;
     cls = 'success';
+    playSound(sounds.askPass);
   } else {
     msg = `${lc.callerName} → ${lc.targetName}: ${lc.cardDisplay} ✗`;
     cls = 'fail';
+    playSound(sounds.askFail);
   }
   const toast = document.createElement('div');
   toast.className = `toast ${cls}`;
@@ -1213,9 +1254,11 @@ function showPitClaimToast() {
   if (pc.valid) {
     msg = `${pc.claimerName} claimed ${pc.pitName} for ${teamName}!`;
     cls = 'success';
+    playSound(sounds.claim);
   } else {
     msg = `Invalid claim! ${pc.pitName} awarded to ${teamName}`;
     cls = 'fail';
+    playSound(sounds.burn);
   }
   const toast = document.createElement('div');
   toast.className = `toast ${cls}`;
@@ -1232,11 +1275,7 @@ function renderActions() {
   const me = gs.players.find(p => p.isYou);
   const isMyTurn = gs.currentTurn === myPlayerId;
 
-  if (gs.state === 'finished' || me.droppedOut) {
-    el.innerHTML = '<span style="color:var(--cream-dim);font-size:0.8rem;">—</span>'; return;
-  }
-
-  // Pending turn choice: player must pick a teammate to give the turn to
+  // Pending turn choice takes priority — even if player is dropped out, they must choose
   if (gs.pendingTurnChoice === myPlayerId) {
     const teammates = gs.players.filter(p => p.team === me.team && !p.isYou && !p.droppedOut && p.cardCount > 0);
     el.innerHTML = `<div style="font-size:0.85rem;color:var(--gold-bright);margin-bottom:8px;">Choose who gets the turn:</div>
@@ -1252,6 +1291,10 @@ function renderActions() {
       socket.emit('choose-turn', { targetTeammateId: targetId }, (res) => { if (!res.success) alert(res.error); });
     });
     return;
+  }
+
+  if (gs.state === 'finished' || me.droppedOut) {
+    el.innerHTML = '<span style="color:var(--cream-dim);font-size:0.8rem;">—</span>'; return;
   }
 
   if (!isMyTurn) {
@@ -1356,10 +1399,22 @@ function doPass() {
   socket.emit('pass-turn', { targetTeammateId: targetId }, (res) => { if (!res.success) alert(res.error); });
 }
 
+let gameOverSoundPlayed = false;
 function renderGameOver() {
   const gs = gameState; const el = document.getElementById('game-over-area');
-  if (gs.state !== 'finished') { el.innerHTML = ''; return; }
+  if (gs.state !== 'finished') { el.innerHTML = ''; gameOverSoundPlayed = false; return; }
   const w = gs.scores[0] > gs.scores[1] ? 'Team Blue Wins!' : gs.scores[1] > gs.scores[0] ? 'Team Red Wins!' : "It's a Tie!";
+
+  if (!gameOverSoundPlayed) {
+    gameOverSoundPlayed = true;
+    const me = gs.players.find(p => p.isYou);
+    if (me) {
+      const winningTeam = gs.scores[0] > gs.scores[1] ? 0 : gs.scores[1] > gs.scores[0] ? 1 : -1;
+      if (winningTeam === -1) { playSound(sounds.lose); }
+      else if (me.team === winningTeam) { playSound(sounds.win); }
+      else { playSound(sounds.lose); }
+    }
+  }
   const allClaimed = Object.keys(gs.claimedPits).length === 9;
   const isHost = gs.hostId === myPlayerId;
 
@@ -1440,6 +1495,10 @@ if (new URLSearchParams(window.location.search).has('dev')) {
     <button id="dev-fill" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:0.7rem;">Fill Bots + Start</button>
     <button id="dev-bot" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:0.7rem;">Bot Turn</button>
     <button id="dev-bot-auto" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:0.7rem;">Auto-play Bots</button>
+    <select id="dev-pit-select" style="padding:2px 4px;font-size:0.7rem;background:#222;color:#ccc;border:1px solid #555;">
+      <option value="">Pick pit…</option>
+    </select>
+    <button id="dev-force-claim" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:0.7rem;color:#f66;">Force Claim (0 cards)</button>
     <span id="dev-status" style="margin-left:8px;"></span>
   `;
   document.body.appendChild(devBar);
@@ -1474,6 +1533,14 @@ if (new URLSearchParams(window.location.search).has('dev')) {
         });
       }, 800);
     }
+  };
+
+  document.getElementById('dev-force-claim').onclick = () => {
+    const pitName = document.getElementById('dev-pit-select').value;
+    if (!pitName) return alert('Pick a pit first');
+    socket.emit('debug-force-claim', { pitName }, (res) => {
+      document.getElementById('dev-status').textContent = res.success ? 'Force claimed! Hand emptied.' : (res.error || 'Error');
+    });
   };
 }
 </script>

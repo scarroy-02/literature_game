@@ -167,7 +167,11 @@ function handlePostClaim(room, playerId) {
     const teammates = activeTeamPlayers(room, player.team)
       .filter(p => p.id !== playerId && (room.hands[p.id] || []).length > 0);
     handleDropOut(room, playerId);
-    if (teammates.length > 0) {
+    if (teammates.length === 1) {
+      // Only one option — auto-assign
+      room.currentTurn = teammates[0].id;
+      addLog(room, `Turn passes to ${teammates[0].name}.`);
+    } else if (teammates.length > 1) {
       // Let the player choose who gets the turn
       room.pendingTurnChoice = playerId;
       room.currentTurn = playerId; // keep turn on them until they choose
@@ -569,6 +573,35 @@ io.on('connection', (socket) => {
 
     addLog(room, 'Game ended early by the host.');
     finishGame(room);
+    cb({ success: true });
+    broadcastGameState(room);
+  });
+
+  // Debug: force a state where claimer has 0 cards after claiming
+  socket.on('debug-force-claim', ({ pitName }, cb) => {
+    const room = getRoom(currentRoom);
+    if (!room || room.state !== 'playing') return cb({ success: false });
+    if (room.currentTurn !== playerId) return cb({ success: false, error: 'Not your turn.' });
+    if (room.claimedPits[pitName] !== undefined) return cb({ success: false, error: 'Pit already claimed.' });
+
+    const claimer = getPlayerById(room, playerId);
+
+    // Claim the pit for the claimer's team
+    room.claimedPits[pitName] = claimer.team;
+    room.lastPitClaim = { pitName, team: claimer.team, claimerName: claimer.name, valid: true };
+    addLog(room, `[DEBUG] ${claimer.name} force-claimed ${pitName}!`);
+    removePitCardsFromHands(room, pitName);
+
+    // Empty the claimer's hand entirely
+    room.hands[playerId] = [];
+
+    checkAllDropouts(room);
+    if (checkGameOver(room)) {
+      finishGame(room);
+    } else {
+      handlePostClaim(room, playerId);
+    }
+
     cb({ success: true });
     broadcastGameState(room);
   });
