@@ -642,6 +642,32 @@ input.name-input {
   .seat-pos-5 { right: -2%; }
 }
 
+.report-bug-btn {
+  position: fixed;
+  bottom: 20px; left: 20px;
+  z-index: 60;
+  background: rgba(13,31,23,0.92);
+  border: 1px solid rgba(200,168,78,0.25);
+  color: var(--cream-dim);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.8rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.report-bug-btn:hover {
+  background: rgba(13,31,23,1);
+  border-color: var(--gold-dim);
+  color: var(--cream);
+}
+@media (max-width: 600px) {
+  .report-bug-btn { padding: 6px 10px; font-size: 0.7rem; bottom: 12px; left: 12px; }
+}
+
 .hidden { display: none !important; }
 </style>
 </head>
@@ -758,6 +784,11 @@ input.name-input {
 
 <!-- CALL DROPDOWN -->
 <div class="call-dropdown" id="call-dropdown"></div>
+
+<!-- REPORT BUG -->
+<a class="report-bug-btn" href="https://tally.so/r/kdR8ed" target="_blank" rel="noopener noreferrer" title="Report a bug">
+  <span>🐛</span><span>Report bug</span>
+</a>
 
 <script>
 const socket = io();
